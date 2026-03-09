@@ -9,6 +9,7 @@ import { workoutsService } from "../services/workouts.service";
 const createWorkoutSchema = z.object({
   date: z.coerce.date(), // aceita string ISO (ou similar) e converte pra Date
   title: z.string().min(1),
+  userId: z.number(),
   notes: z.string().optional(),
 });
 

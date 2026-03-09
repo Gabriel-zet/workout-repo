@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { workoutsRoutes } from "./routes/workouts.routes";
+import { usersRoutes } from "./routes/users.routes";
 
 const app = express();
 
@@ -8,6 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/workouts", workoutsRoutes);
+app.use("/users", usersRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
