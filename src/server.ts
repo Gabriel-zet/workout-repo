@@ -1,7 +1,11 @@
 import express from "express";
 import cors from "cors";
+import "dotenv/config";
 import { workoutsRoutes } from "./routes/workouts.routes";
 import { usersRoutes } from "./routes/users.routes";
+import { authRoutes } from "./routes/auth.routes";
+
+
 
 const app = express();
 
@@ -10,6 +14,7 @@ app.use(express.json());
 
 app.use("/workouts", workoutsRoutes);
 app.use("/users", usersRoutes);
+app.use("/auth", authRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });

@@ -9,7 +9,6 @@ import { workoutsService } from "../services/workouts.service";
 const createWorkoutSchema = z.object({
   date: z.coerce.date(), // aceita string ISO (ou similar) e converte pra Date
   title: z.string().min(1),
-  userId: z.number(),
   notes: z.string().optional(),
 });
 
@@ -24,25 +23,23 @@ const updateWorkoutSchema = z.object({
 
 export const workoutsController = {
   // Cria um workout
-  async create(req: Request, res: Response) {
-    // payload da requisição
-    const { body } = req;
+async create(req: Request, res: Response) {
+  
+  if (!req.userId) {
+    return res.status(401).json({ message: "Unauthenticated" });
+  }
 
-    // Validação
-    if (!body || Object.keys(body).length === 0) {
-      return res.status(400).json({ message: "Request body cannot be empty" });
-    }
+  const parsedBody = createWorkoutSchema.parse(req.body);
 
-    // Valida e normaliza os dados de entrada. Se estiver inválido, o Zod lança erro
-    const parsedBody = createWorkoutSchema.parse(body);
+  const workout = await workoutsService.create({
+    ...parsedBody,
+    userId: req.userId,
+  });
 
-    // Chama a camada de serviço para persistir o workout
-    const workout = await workoutsService.create(parsedBody);
+  return res.status(201).json(workout);
+},
 
-    // Retorna 201 com o recurso criado
-    return res.status(201).json(workout);
-  },
-
+ 
   // Lista todos os workouts
   async list(_req: Request, res: Response) {
     const workouts = await workoutsService.list();

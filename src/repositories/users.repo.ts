@@ -22,4 +22,8 @@ export const userRepo = {
     deleteById(id: number){
         return prisma.user.delete({ where: { id } });
     },
+
+    findByEmail(email: string) {
+        return prisma.user.findUnique({ where: { email } });
+},
 };
