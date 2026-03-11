@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { workoutsController } from "../controllers/workouts.controller";
 import { validateIdParam } from "../middlewares/validateIdParam";
+import { ensureAuth } from "../middlewares/ensureAuth";
 
 export const workoutsRoutes = Router();
+
+workoutsRoutes.use(ensureAuth);
 
 workoutsRoutes.post("/", workoutsController.create);
 workoutsRoutes.get("/", workoutsController.list);

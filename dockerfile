@@ -6,12 +6,14 @@ WORKDIR /app
 
 # Copia as dependecias do projeto
 COPY package*.json ./
+COPY prisma ./prisma
 
 # Instala as dependências do projeto
 RUN npm install
 
 # Copia o restante dos arquivos do projeto para o diretório de trabalho
 COPY . .
+
 
 # Define a variável de ambiente para a porta
 ENV PORT=3000
