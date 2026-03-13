@@ -15,7 +15,16 @@ export const userRepo = {
 
     // Busca um usuário específico pelo id. Retorna `null` se não encontrar
     findById(id: number){
-        return prisma.user.findUnique({ where: { id } });
+        return prisma.user.findUnique({ 
+            where: { id },
+                select: {
+                id: true,
+                name: true,
+                email: true,
+                createdAt: true,
+                passwordHash: false,
+    },
+        });
     },
 
     // Delete um usuário pelo id
@@ -25,5 +34,7 @@ export const userRepo = {
 
     findByEmail(email: string) {
         return prisma.user.findUnique({ where: { email } });
+
+    this.findById
 },
 };
