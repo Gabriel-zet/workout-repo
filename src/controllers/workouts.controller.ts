@@ -33,7 +33,7 @@ async create(req: Request, res: Response) {
 
   const workout = await workoutsService.create({
     ...parsedBody,
-    date: parsedBody.date ?? new Date(),
+    date: parsedBody.date,
     userId: req.userId,
   });
 

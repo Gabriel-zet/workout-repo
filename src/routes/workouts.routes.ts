@@ -7,8 +7,8 @@ export const workoutsRoutes = Router();
 
 workoutsRoutes.use(ensureAuth);
 
-workoutsRoutes.post("/", workoutsController.create);
-workoutsRoutes.get("/", workoutsController.list);
-workoutsRoutes.get("/:id", validateIdParam,workoutsController.getById);
-workoutsRoutes.put("/:id", validateIdParam, workoutsController.update);
-workoutsRoutes.delete("/:id", validateIdParam, workoutsController.remove);
+workoutsRoutes.post("/create", workoutsController.create);
+workoutsRoutes.get("/list", workoutsController.list);
+workoutsRoutes.get("/profile/:id", validateIdParam,workoutsController.getById);
+workoutsRoutes.put("/profile/:id", validateIdParam, workoutsController.update);
+workoutsRoutes.delete("/delete/:id", validateIdParam, workoutsController.remove);
