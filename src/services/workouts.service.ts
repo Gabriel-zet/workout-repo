@@ -13,6 +13,11 @@ export const workoutsService = {
     return workoutsRepository.findMany();
   },
 
+
+  async listByUser(userId: number) {
+    return workoutsRepository.FindManyId(userId);
+  },
+
 // Busca um workout pelo id
   async getById(id: string) {
     const workout = await workoutsRepository.findById(id);

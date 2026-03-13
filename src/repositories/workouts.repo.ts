@@ -13,6 +13,13 @@ export const workoutsRepository = {
     return prisma.workout.findMany({ orderBy: { date: "desc" } });
   },
 
+  FindManyId(userId: number){
+         return prisma.workout.findMany({
+            where: { userId },
+            orderBy: { date: "desc" },
+        });
+  },
+
   // Busca um workout específico pelo id. Retorna `null` se não encontrar
   findById(id: string) {
     return prisma.workout.findUnique({ where: { id } });

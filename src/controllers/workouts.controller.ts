@@ -47,6 +47,15 @@ async create(req: Request, res: Response) {
     return res.json(workouts);
   },
 
+    // ??? 
+  async listUnique(_req: Request, res: Response) {
+    if (!_req.userId) {
+      return res.status(401).json({ message: "Unauthenticated" });
+    }
+    const workouts = await workoutsService.listByUser(_req.userId);
+    return res.json(workouts);
+  },
+
   // Busca workout por id
   async getById(req: Request, res: Response) {
     const { id } = req.params;

@@ -12,3 +12,4 @@ workoutsRoutes.get("/list", workoutsController.list);
 workoutsRoutes.get("/profile/:id", validateIdParam,workoutsController.getById);
 workoutsRoutes.put("/profile/:id", validateIdParam, workoutsController.update);
 workoutsRoutes.delete("/delete/:id", validateIdParam, workoutsController.remove);
+workoutsRoutes.get("/listself", workoutsController.listUnique);
