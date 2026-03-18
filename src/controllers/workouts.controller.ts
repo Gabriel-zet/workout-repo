@@ -22,6 +22,14 @@ const updateWorkoutSchema = z.object({
 });
 
 export const workoutsController = {
+
+  // Lista todos os workouts t t 
+  async listall(_req: Request, res: Response) {
+    const workouts = await workoutsService.list();
+    return res.json(workouts);
+  }, 
+
+
   // Cria um workout
 async create(req: Request, res: Response) {
   
@@ -40,18 +48,10 @@ async create(req: Request, res: Response) {
   return res.status(201).json(workout);
 },
 
- 
-  // Lista todos os workouts
+  // Lista todos os workouts do usuário logado 
   async list(_req: Request, res: Response) {
-    const workouts = await workoutsService.list();
-    return res.json(workouts);
-  },
+    if (!_req.userId) return res.status(401).json({ message: "Unauthenticated" });
 
-    // ??? 
-  async listUnique(_req: Request, res: Response) {
-    if (!_req.userId) {
-      return res.status(401).json({ message: "Unauthenticated" });
-    }
     const workouts = await workoutsService.listByUser(_req.userId);
     return res.json(workouts);
   },
@@ -65,11 +65,14 @@ async create(req: Request, res: Response) {
       return res.status(400).json({ message: "Invalid id parameter" });
     }
 
-    const workout = await workoutsService.getById(id);
-    if (!workout) {
+    const workout = await workoutsService.getByIdForUser(id, req.userId!);
+    
+    if (!req.userId) {
+      return res.status(401).json({ message: "Unauthenticated" });
+    } else if (!workout) {
       return res.status(404).json({ message: "Workout not found" });
     }
-
+    
     return res.json(workout);
   },
 
@@ -86,8 +89,14 @@ async create(req: Request, res: Response) {
 
     // Validação 
     const body = updateWorkoutSchema.parse(req.body);
+    if (!req.userId) {
+      return res.status(401).json({ message: "Unauthenticated" });
+    } 
+    const workout = await workoutsService.updateByIdForUser(id, req.userId, body);
 
-    const workout = await workoutsService.update(id, body);
+    if (!workout) {
+      return res.status(404).json({ message: "Workout not found or not owned by user" });
+    }
     return res.json(workout);
   },
 
@@ -97,9 +106,11 @@ async create(req: Request, res: Response) {
 
     if (!id || Array.isArray(id)) {
       return res.status(400).json({ message: "Invalid id parameter" });
+    } else if (!req.userId) {
+      return res.status(401).json({ message: "Unauthenticated" });
     }
 
-    await workoutsService.remove(id);
+    await workoutsService.removeByIdForUser(id, req.userId!);
 
     // 204 = sem conteúdo
     return res.status(204).send();

@@ -8,10 +8,10 @@ export const workoutsService = {
     return workoutsRepository.create(input);
   },
 
-  // Lista todos os workouts
+  // lista todos os workouts. Sem paginação, sem filtro, sem nada. Só pra testar mesmo
   async list() {
     return workoutsRepository.findMany();
-  },
+  }, 
 
 
   async listByUser(userId: number) {
@@ -19,18 +19,18 @@ export const workoutsService = {
   },
 
 // Busca um workout pelo id
-  async getById(id: string) {
-    const workout = await workoutsRepository.findById(id);
+  async getByIdForUser(id: string, userId: number) {
+    const workout = await workoutsRepository.findByIdForUser(id, userId);
     return workout;
   },
 
   // Atualiza um workout pelo id > Partial<CreateWorkoutInput> permite atualizar só alguns campos
-  async update(id: string, data: Partial<CreateWorkoutInput>) {
-    return workoutsRepository.updateById(id, data);
+  async updateByIdForUser(id: string, userId: number, data: Partial<CreateWorkoutInput>) {
+    return workoutsRepository.updateByIdForUser(id, userId, data);
   },
 
   // Remove um workout pelo id
-  async remove(id: string) {
-    return workoutsRepository.deleteById(id);
+  async removeByIdForUser(id: string, userId: number) {
+    return workoutsRepository.deleteByIdForUser(id, userId);
   },
 };
