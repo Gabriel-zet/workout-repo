@@ -5,6 +5,7 @@ import { workoutsRoutes } from "./routes/workouts.routes";
 import { usersRoutes } from "./routes/users.routes";
 import { authRoutes } from "./routes/auth.routes";
 import { meRoutes } from "./routes/me.routes";
+import { errorHandler } from "./middlewares/errorHandler";
 
 
 
@@ -21,6 +22,8 @@ app.use(meRoutes);
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
+
+app.use(errorHandler);
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 app.listen(port, '0.0.0.0', () => {

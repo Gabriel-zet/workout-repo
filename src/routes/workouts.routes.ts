@@ -9,11 +9,11 @@ export const workoutsRoutes = Router();
 // workoutsRoutes.use(ensureAuth); 
 
 // Somente listando user logado
-workoutsRoutes.post("/create", workoutsController.create, ensureAuth);
-workoutsRoutes.get("/list", workoutsController.list, ensureAuth);
-workoutsRoutes.get("/profile/:id", validateIdParam,workoutsController.getById, ensureAuth);
-workoutsRoutes.put("/profile/:id", validateIdParam, workoutsController.update, ensureAuth);
-workoutsRoutes.delete("/delete/:id", validateIdParam, workoutsController.remove, ensureAuth);
+workoutsRoutes.post("/create", ensureAuth, workoutsController.create);
+workoutsRoutes.get("/list", ensureAuth, workoutsController.list);
+workoutsRoutes.get("/profile/:id", ensureAuth, validateIdParam,workoutsController.getById);
+workoutsRoutes.put("/profile/:id", ensureAuth, validateIdParam, workoutsController.update);
+workoutsRoutes.delete("/delete/:id", ensureAuth, validateIdParam, workoutsController.remove);
 
 
 // rota de teste pra listar tudo, sem nada :V loucuras 
