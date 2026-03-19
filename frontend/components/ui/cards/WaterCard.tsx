@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, useWindowDimensions } from "react-native";
+import { View, Text } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 
 export default function WaterCard() {
@@ -8,7 +8,7 @@ export default function WaterCard() {
   const filledBars = 7; // Representa o 1.5L de 2.5L
 
   return (
-    <View className="bg-[#111111] rounded-[36px] p-5 border-2 border-[#2A2A2A] w-full">
+    <View className="bg-[#111111] rounded-[36px] p-5 border-2 border-[#2A2A2A] w-full h-full flex flex-col">
 
       {/* Cabeçalho */}
       <View className="flex-row items-center">

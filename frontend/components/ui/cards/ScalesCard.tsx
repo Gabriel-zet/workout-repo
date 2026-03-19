@@ -9,24 +9,26 @@ export default function WeightCard() {
 
   return (
     <View
-
-      className="bg-[#111111] rounded-[36px] p-5 border-4 border-[#111111] w-full flex flex-col items-center overflow-hidden">
+      className="bg-[#111111] rounded-[36px] p-2 border-[15px] border-[#111111] w-full h-full flex flex-col items-center overflow-hidden relative">
 
       {/* Data */}
-      <Text className="text-white text-sm font-regular mb-1">
+      <Text className="text-white text-xs font-regular mt-2">
         Hoje, Março 12
       </Text>
 
       {/* Peso Principal */}
-      <Text className="text-[#FF6B00] text-[48px] font-medium leading-[40px] my-2">
+      <Text
+        className="text-[#FF6B00] text-[60px] leading-[50px] font-medium mt-3"
+        style={{ textAlignVertical: 'center' }}
+      >
         86.4
       </Text>
 
       {/* Subtítulo da Meta */}
-      <View className="flex-row items-center mt-1 mb-10 opacity-60">
+      <View className="flex-row items-center mb-10 opacity-60 flex-1 justify-center">
         {/* Ícone atualizado para FontAwesome5 */}
-        <FontAwesome5 name="flag-checkered" size={12} color="#FFFFFF" />
-        <Text className="text-white text-sm font-regular ml-2.5">
+        <FontAwesome5 name="flag-checkered" size={10} color="#FFFFFF" />
+        <Text className="text-white text-xs font-regular ml-1.5">
           16.4 kg até a meta
         </Text>
       </View>

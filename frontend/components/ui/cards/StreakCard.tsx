@@ -32,7 +32,7 @@ export default function StreakCard({
   };
 
   return (
-    <View className="bg-[#111111] rounded-[36px] p-5 border-2 border-[#2A2A2A] w-full">
+    <View className="bg-[#111111] rounded-[36px] p-5 border-2 border-[#2A2A2A] w-full h-full flex flex-col">
 
       {/* Header */}
       <View className="flex-row items-center">
@@ -51,7 +51,7 @@ export default function StreakCard({
       </View>
 
       {/* Grid */}
-      <View className="flex-col">
+      <View className="flex-col flex-1 justify-center gap-1">
         {rows.map((row, i) => (
           <View key={i} className="flex-row justify-between">
             {row.map((day) => {
