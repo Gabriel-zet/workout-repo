@@ -3,6 +3,7 @@ import StreakCard from '@/components/ui/cards/StreakCard';
 import ScalesCard from '@/components/ui/cards/ScalesCard';
 import WaterCard from '@/components/ui/cards/WaterCard';
 import WorkoutCard from '@/components/ui/cards/WorkoutCard';
+import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
@@ -38,14 +39,18 @@ export default function HomeScreen() {
   };
 
   return (
-    <FlatList
-      data={cards}
-      renderItem={renderCard}
-      keyExtractor={(item) => item.id}
-      numColumns={numColumns}
-      scrollEnabled={false}
-      contentContainerStyle={{ padding: 16 }}
-    />
+    <View style={{ flex: 1 }} className="bg-[#09090b]">
+      <HomeCalendar />
+
+      <FlatList
+        data={cards}
+        renderItem={renderCard}
+        keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        scrollEnabled={false}
+        contentContainerStyle={{ padding: 16 }}
+      />
+    </View>
   );
 }
 
