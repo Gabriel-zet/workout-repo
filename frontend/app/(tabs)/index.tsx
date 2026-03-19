@@ -2,6 +2,7 @@ import { View, useWindowDimensions, FlatList } from 'react-native';
 import StreakCard from '@/components/ui/cards/StreakCard';
 import ScalesCard from '@/components/ui/cards/ScalesCard';
 import WaterCard from '@/components/ui/cards/WaterCard';
+import WorkoutCard from '@/components/ui/cards/WorkoutCard';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
@@ -16,7 +17,7 @@ export default function HomeScreen() {
     { id: '1', component: StreakCard },
     { id: '2', component: ScalesCard },
     { id: '3', component: WaterCard },
-    { id: '4', component: StreakCard }, // Exemplo com 4 itens
+    { id: '4', component: WorkoutCard }, // Exemplo com 4 itens
   ];
 
   const renderCard = ({ item, index }: { item: typeof cards[0], index: number }) => {
@@ -26,6 +27,7 @@ export default function HomeScreen() {
       <View
         style={{
           width: itemWidth,
+          height: itemWidth,
           marginBottom: gap,
           marginRight: isLastColumn ? 0 : gap,
         }}
