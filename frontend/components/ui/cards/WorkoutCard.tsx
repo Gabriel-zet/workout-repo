@@ -28,24 +28,24 @@ export default function WorkoutCard() {
                     {/* Cabeçalho */}
                     <View className="flex-row items-center">
                         <FontAwesome5 name="dumbbell" size={12} color="#FFFFFF" />
-                        <Text className="text-white text-sm font-regular ml-2.5">
+                        <Text className="text-white text-sm font-firs-regular ml-2.5">
                             Treino diário
                         </Text>
                     </View>
 
                     <View className="gap-3 mt-2">
-                        <Text className="text-white text-lg font-regular">
+                        <Text className="text-white text-lg font-firs-regular">
                             Push - peso por lado
                         </Text>
 
                         <View className="flex-row items-center">
                             <Ionicons name="alarm" size={12} color="#FFFFFF" />
-                            <Text className="text-white ml-1 text-sm font-regular">
+                            <Text className="text-white ml-1 text-sm font-firs-regular">
                                 1h:30m
                             </Text>
                         </View>
                         <TouchableOpacity className="bg-[#2A2A2A] rounded-full px-6 py-2 self-start">
-                            <Text className="text-white text-sm font-medium">
+                            <Text className="text-white text-sm font-firs-medium">
                                 Ver treino
                             </Text>
                         </TouchableOpacity>

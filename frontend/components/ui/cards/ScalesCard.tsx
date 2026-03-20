@@ -12,13 +12,13 @@ export default function WeightCard() {
       className="bg-[#111111] rounded-[36px] p-2 border-[15px] border-[#111111] w-full h-full flex flex-col items-center overflow-hidden relative">
 
       {/* Data */}
-      <Text className="text-white text-xs font-regular mt-2">
+      <Text className="text-white text-xs font-firs-regular mt-2">
         Hoje, Março 12
       </Text>
 
       {/* Peso Principal */}
       <Text
-        className="text-[#FF6B00] text-[60px] leading-[50px] font-medium mt-3"
+        className="text-[#FF6B00] text-[60px] leading-[50px] font-firs-medium mt-3"
         style={{ textAlignVertical: 'center' }}
       >
         86.4
@@ -28,7 +28,7 @@ export default function WeightCard() {
       <View className="flex-row items-center mb-10 opacity-60 flex-1 justify-center">
         {/* Ícone atualizado para FontAwesome5 */}
         <FontAwesome5 name="flag-checkered" size={10} color="#FFFFFF" />
-        <Text className="text-white text-xs font-regular ml-1.5">
+        <Text className="text-white text-xs font-firs-regular ml-1.5">
           16.4 kg até a meta
         </Text>
       </View>

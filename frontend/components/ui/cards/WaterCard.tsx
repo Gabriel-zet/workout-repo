@@ -14,14 +14,14 @@ export default function WaterCard() {
       <View className="flex-row items-center">
         {/* Usando o glass-whiskey do FA5 que lembra o copo quadrado do design */}
         <FontAwesome5 name="glass-whiskey" size={12} color="#FFFFFF" />
-        <Text className="text-white text-sm font-regular ml-2.5">
+        <Text className="text-white text-sm font-firs-regular ml-2.5">
           Água diária
         </Text>
       </View>
 
       {/* Conteúdo Principal (Valor + Meta) */}
       <View className="flex-row items-center">
-        <Text className="text-[#FF6B00] text-[50px] font-medium mr-2.5">
+        <Text className="text-[#FF6B00] text-[50px] font-firs-medium mr-2.5">
           1.5
         </Text>
 
@@ -29,13 +29,13 @@ export default function WaterCard() {
           {/* Badge de Aumento */}
           <View className="bg-[#303E00] rounded-full px-2.5 py-0.5 flex-row items-center self-start mb-1">
             <FontAwesome5 name="arrow-up" size={10} color="#A3E600" />
-            <Text className="text-[#A3E600] font-medium ml-1 text-sm">
+            <Text className="text-[#A3E600] font-firs-medium ml-1 text-sm">
               900 ml
             </Text>
           </View>
 
           {/* Valor Total */}
-          <Text className="text-white text-md font-regular">
+          <Text className="text-white text-md font-firs-regular">
             /2.5 Litros
           </Text>
         </View>
@@ -58,7 +58,7 @@ export default function WaterCard() {
       {/* Rodapé (Restante) */}
       <View className="flex-row items-center justify-center opacity-60">
         <FontAwesome5 name="flag-checkered" size={12} color="#FFFFFF" />
-        <Text className="text-white text-sm font-regular ml-2.5">
+        <Text className="text-white text-sm font-firs-regular ml-2.5">
           1 litro até meta
         </Text>
       </View>

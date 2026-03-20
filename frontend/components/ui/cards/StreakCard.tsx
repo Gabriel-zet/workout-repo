@@ -36,15 +36,15 @@ export default function StreakCard({
 
       {/* Header */}
       <View className="flex-row items-center">
-        <Text className="text-[#FF6600] text-[48px] font-medium">
+        <Text className="text-[#FF6600] text-[48px] font-firs-medium">
           {streakText}
         </Text>
 
         <View className="ml-4 justify-center">
-          <Text className="text-white text-lg font-regular leading-[20px]">
+          <Text className="text-white text-lg font-firs-regular leading-[20px]">
             dias
           </Text>
-          <Text className="text-white text-lg font-regular leading-[20px]">
+          <Text className="text-white text-lg font-firs-regular leading-[20px]">
             seguidos
           </Text>
         </View>
@@ -81,11 +81,11 @@ export default function StreakCard({
       <View className="flex-row items-center justify-center mt-3">
         <FontAwesome5 name="fire" size={10} color="#FF6600" />
 
-        <Text className="text-white text-sm font-regular ml-2.5 mr-1.5">
+        <Text className="text-white text-sm font-firs-regular ml-2.5 mr-1.5">
           {calories} kcal
         </Text>
 
-        <Text className="text-[#8C8C8C] text-sm font-regular">
+        <Text className="text-[#8C8C8C] text-sm font-firs-regular">
           queimadas
         </Text>
       </View>
