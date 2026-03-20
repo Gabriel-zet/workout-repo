@@ -1,106 +1,111 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, TouchableOpacity } from 'react-native';
 
-// Dados simulados para a semana
-const weekDays = [
-    { id: '1', day: 'D', date: '02', active: false },
-    { id: '2', day: 'S', date: '03', active: false },
-    { id: '3', day: 'T', date: '04', active: false },
-    { id: '4', day: 'Q', date: '05', active: false },
-    { id: '5', day: 'Q', date: '06', active: true, hasNotification: true },
-    { id: '6', day: 'S', date: '07', active: false },
-    { id: '7', day: 'S', date: '08', active: false },
-];
+type HomeCalendarProps = {
+    selectedDate: Date;
+    setSelectedDate: (date: Date) => void;
+};
 
-export default function HomeCalendar() {
+type WeekDay = {
+    id: string;
+    day: string;
+    date: string;
+    fullDate: Date;
+    active: boolean;
+    hasNotification?: boolean;
+};
+
+function getWeekDays(selectedDate: Date): WeekDay[] {
+    const currentDay = selectedDate.getDay();
+
+    const startOfWeek = new Date(selectedDate);
+    startOfWeek.setDate(selectedDate.getDate() - currentDay);
+
+    const weekLabels = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+
+    const days: WeekDay[] = [];
+
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+
+        const isSelected =
+            date.toDateString() === selectedDate.toDateString();
+
+        days.push({
+            id: String(i),
+            day: weekLabels[date.getDay()],
+            date: String(date.getDate()).padStart(2, '0'),
+            fullDate: date,
+            active: isSelected,
+            hasNotification: isSelected, // pode mudar depois
+        });
+    }
+
+    return days;
+}
+
+export default function HomeCalendar({
+    selectedDate,
+    setSelectedDate,
+}: HomeCalendarProps) {
+    const weekDays = getWeekDays(selectedDate);
+
     return (
-        <SafeAreaView className="flex-1">
-            <StatusBar style="light" />
+        <View>
+            <View className="flex-row justify-between items-center w-full px-5 my-5">
+                {weekDays.map((item) => {
+                    const isActive = item.active;
 
-            <View className="px-5 pt-10 pb-4">
-                {/* Header */}
-                <View className="flex-row items-center justify-between">
-
-                    {/* Botão Menu */}
-                    <TouchableOpacity className="bg-[#1c1c1e] w-14 h-14 rounded-2xl items-center justify-center">
-                        <MaterialIcons name="drag-handle" size={32} color="white" />
-                    </TouchableOpacity>
-
-                    {/* Títulos Centrais */}
-                    <View className="items-center">
-                        <Text className="text-white text-2xl font-semibold tracking-tight">
-                            Quinta-feira
-                        </Text>
-                        <Text className="text-[#8e8e93] text-sm mt-1">
-                            Push - peso por lado
-                        </Text>
-                    </View>
-
-                    {/* Avatar com Notificação */}
-                    <TouchableOpacity className="relative">
-                        <Image
-                            source={{ uri: 'https://i.pravatar.cc/150?u=neo' }} // Substitua pela imagem correta
-                            className="w-14 h-14 rounded-full bg-neutral-800"
-                        />
-                        <View className="absolute bottom-0 right-0 w-4 h-4 bg-[#ff6b00] rounded-full border-2 border-[#09090b]" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Barra de Dias da Semana */}
-                <View className="flex-row justify-between items-center mt-12 w-full px-1">
-                    {weekDays.map((item) => {
-                        const isActive = item.active;
-
-                        return (
-                            <TouchableOpacity
-                                key={item.id}
-                                activeOpacity={0.8}
-                                className={`
-                                items-center justify-between rounded-2xl
-                                ${isActive
-                                        ? 'bg-white w-[14.2%] py-2 gap-2'
-                                        : 'bg-[#1c1c1e] w-[13.5%] py-2 gap-1'}
-                                `}
-                            >
-                                {/* Topo (Letra + ponto) */}
-                                <View className="flex-row items-center justify-center">
-                                    <Text
-                                        className={`
-                                            font-medium text-sm
-                                            ${isActive ? 'text-black' : 'text-[#8e8e93]'}
-                                        `}
-                                        style={{ letterSpacing: 0.5 }}
-                                    >
-                                        {item.day}
-                                    </Text>
-
-                                    {item.hasNotification && isActive && (
-                                        <View className="w-[6px] h-[6px] bg-brand-primary rounded-full ml-1.5 mt-[2px]" />
-                                    )}
-                                </View>
-
-                                {/* Número */}
+                    return (
+                        <TouchableOpacity
+                            key={item.id}
+                            activeOpacity={0.8}
+                            onPress={() => setSelectedDate(item.fullDate)}
+                            className={`
+                items-center justify-between rounded-2xl
+                ${isActive
+                                    ? 'bg-white w-[14.2%] py-2 gap-2'
+                                    : 'bg-[#1c1c1e] w-[13.5%] py-2 gap-1'
+                                }
+              `}
+                        >
+                            {/* Dia + bolinha */}
+                            <View className="flex-row items-center justify-center">
                                 <Text
                                     className={`
-                                        ${isActive
-                                            ? 'text-black text-3xl font-semibold'
-                                            : 'text-[#8e8e93] text-xl font-medium'}
-                                    `}
-                                    style={{
-                                        lineHeight: isActive ? 28 : 20,
-                                        letterSpacing: -1,
-                                    }}
+                    font-firs-medium text-sm
+                    ${isActive ? 'text-black' : 'text-[#8e8e93]'}
+                  `}
+                                    style={{ letterSpacing: 0.5 }}
                                 >
-                                    {item.date}
+                                    {item.day}
                                 </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
 
+                                {item.hasNotification && isActive && (
+                                    <View className="w-[6px] h-[6px] bg-brand-primary rounded-full ml-1.5 mt-[2px]" />
+                                )}
+                            </View>
+
+                            {/* Número */}
+                            <Text
+                                className={`
+                  ${isActive
+                                        ? 'text-black text-3xl font-firs-semibold'
+                                        : 'text-[#8e8e93] text-xl font-firs-medium'
+                                    }
+                `}
+                                style={{
+                                    lineHeight: isActive ? 28 : 20,
+                                    letterSpacing: -1,
+                                }}
+                            >
+                                {item.date}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
