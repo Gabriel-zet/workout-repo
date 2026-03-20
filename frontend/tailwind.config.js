@@ -10,11 +10,11 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        black: ["TT-Firs-Black"],
-        regular: ["TT-Firs-Regular"],
-        medium: ["TT-Firs-Medium"],
-        semibold: ["TT-Firs-DemiBold"],
-        bold: ["TT-Firs-Bold"],
+        "firs-black": ["TT-Firs-Black"],
+        "firs-regular": ["TT-Firs-Regular"],
+        "firs-medium": ["TT-Firs-Medium"],
+        "firs-semibold": ["TT-Firs-DemiBold"],
+        "firs-bold": ["TT-Firs-Bold"],
       },
 
       colors: {
