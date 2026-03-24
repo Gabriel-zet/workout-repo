@@ -9,15 +9,15 @@ const getBaseUrl = () => {
     // Expo Go (celular ou até emulador via LAN)
     if (hostUri) {
         const ip = hostUri.split(':')[0];
-        return `http://${ip}:3000/api`;
+        return `http://${ip}:3000`;
     }
 
     // fallback (caso não tenha hostUri)
     return Platform.select({
-        android: 'http://10.0.2.2:3000/api',
-        ios: 'http://localhost:3000/api',
-        web: 'http://localhost:3000/api',
-        default: 'http://localhost:3000/api',
+        android: 'http://10.0.2.2:3000',
+        ios: 'http://localhost:3000',
+        web: 'http://localhost:3000',
+        default: 'http://localhost:3000',
     });
 };
 
@@ -137,7 +137,7 @@ class ApiClient {
         email: string,
         password: string
     ): Promise<{ id: number; email: string; name: string }> {
-        return this.request('POST', '/users/register', { name, email, password });
+        return this.request('POST', '/user/register', { name, email, password });
     }
 
     async getMe(): Promise<{ id: number; email: string; name: string }> {
@@ -243,11 +243,11 @@ class ApiClient {
         name: string;
         createdAt: string;
     }> {
-        return this.request('GET', `/users/profile/${id}`, undefined, true);
+        return this.request('GET', `/user/profile/${id}`, undefined, true);
     }
 
     async deleteUser(id: number): Promise<void> {
-        return this.request('DELETE', `/users/delete/${id}`, undefined, true);
+        return this.request('DELETE', `/user/delete/${id}`, undefined, true);
     }
 }
 
