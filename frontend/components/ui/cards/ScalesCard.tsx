@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, useWindowDimensions } from "react-native";
+import { View, Text } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 
 export default function WeightCard() {
