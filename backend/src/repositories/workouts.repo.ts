@@ -30,12 +30,23 @@ export const workoutsRepository = {
 
   // Ownership:  
 
-  // ownership: só acha se for do usuário
-  findByIdForUser(id: string, userId: number) {
-    return prisma.workout.findFirst({
-      where: { id, userId },
-    });
-  },
+  // ownership: só acha se for do usuário - adicionei exercicios também por sei lá ficou completo pelo menos - de inicio ia fazer gambiarra e desisti
+findByIdForUser(id: string, userId: number) {
+  return prisma.workout.findFirst({
+    where: { id, userId },
+    include: {
+      workoutExercises: {
+        orderBy: { order: "asc" },
+        include: {
+          exercise: true,
+          sets: {
+            orderBy: { order: "asc" },
+          },
+        },
+      },
+    },
+  });
+},
 
   // ownership: só atualiza se for do usuário
   async updateByIdForUser(
