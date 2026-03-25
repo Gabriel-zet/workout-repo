@@ -6,11 +6,8 @@ import {
   ActivityIndicator,
   Text,
   RefreshControl,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import StreakCard from '@/components/ui/cards/StreakCard';
 import ScalesCard from '@/components/ui/cards/ScalesCard';
 import WaterCard from '@/components/ui/cards/WaterCard';
@@ -23,7 +20,6 @@ import { isSameCalendarDay } from '@/utils/date';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
-  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { workouts, loading, refetch } = useWorkouts();
   const [refreshing, setRefreshing] = useState(false);
@@ -113,15 +109,6 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      <TouchableOpacity
-        className="absolute bottom-8 right-6 bg-brand-primary rounded-full w-16 h-16 items-center justify-center shadow-lg"
-        onPress={() => {
-          console.log('FAB pressed, navigating to create-workout');
-          router.push('/create-workout');
-        }}
-      >
-        <MaterialCommunityIcons name="plus" size={28} color="#09090b" />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
