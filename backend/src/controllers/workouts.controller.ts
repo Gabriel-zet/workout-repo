@@ -58,23 +58,18 @@ async create(req: Request, res: Response) {
 
   // Busca workout por id
   async getById(req: Request, res: Response) {
-    const { id } = req.params;
+  if (!req.userId) return res.status(401).json({ message: "Unauthenticated" });
 
-    // Garante que id existe e não é array
-    if (!id || Array.isArray(id)) {
-      return res.status(400).json({ message: "Invalid id parameter" });
-    }
+  const { id } = req.params;
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({ message: "Invalid id parameter" });
+  }
 
-    const workout = await workoutsService.getByIdForUser(id, req.userId!);
-    
-    if (!req.userId) {
-      return res.status(401).json({ message: "Unauthenticated" });
-    } else if (!workout) {
-      return res.status(404).json({ message: "Workout not found" });
-    }
-    
-    return res.json(workout);
-  },
+  const workout = await workoutsService.getByIdForUser(id, req.userId);
+  if (!workout) return res.status(404).json({ message: "Workout not found" });
+
+  return res.json(workout);
+},
 
   // Atualiza workout por id
   async update(req: Request, res: Response) {

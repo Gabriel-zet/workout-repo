@@ -7,6 +7,7 @@ import { authRoutes } from "./routes/auth.routes";
 import { meRoutes } from "./routes/me.routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { exercisesRoutes } from "./routes/exercises.routes";
+import { workoutsExercisesRoutes } from "./routes/workoutsExercises.routes";
 
 
 
@@ -19,6 +20,7 @@ app.use("/workouts", workoutsRoutes);
 app.use("/user", usersRoutes);
 app.use("/auth", authRoutes);
 app.use("/exercises", exercisesRoutes);
+app.use("/workout-exercises", workoutsExercisesRoutes);
 app.use(meRoutes);
 
 app.get("/health", (_req, res) => {
