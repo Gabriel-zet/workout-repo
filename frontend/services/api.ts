@@ -249,6 +249,32 @@ class ApiClient {
     async deleteUser(id: number): Promise<void> {
         return this.request('DELETE', `/user/delete/${id}`, undefined, true);
     }
+
+    async getExercises(): Promise<
+        Array<{
+            id: string;
+            name: string;
+            createdAt: string;
+            updatedAt: string;
+            userId: number;
+        }>
+    > {
+        return this.request('GET', '/exercises', undefined, true);
+    }
+
+    async createExercise(name: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: string;
+        updatedAt: string;
+        userId: number;
+    }> {
+        return this.request('POST', '/exercises', { name }, true);
+    }
+
+    async deleteExercise(id: string): Promise<void> {
+        return this.request('DELETE', `/exercises/${id}`, undefined, true);
+    }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

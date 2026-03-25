@@ -1,87 +1,75 @@
-import { useState, useEffect, useCallback } from 'react';
-
-export interface Exercise {
-    id: string;
-    name: string;
-    createdAt: string;
-    userId: number;
-}
-
-// Mock de exercícios
-const MOCK_EXERCISES: Exercise[] = [
-    {
-        id: 'ex-1',
-        name: 'Supino Reto',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-    {
-        id: 'ex-2',
-        name: 'Rosca Direta',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-    {
-        id: 'ex-3',
-        name: 'Agachamento',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-    {
-        id: 'ex-4',
-        name: 'Rosca Inversa',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-    {
-        id: 'ex-5',
-        name: 'Cross Over',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-    {
-        id: 'ex-6',
-        name: 'Leg Press',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-    {
-        id: 'ex-7',
-        name: 'Extensão de Quadríceps',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-    {
-        id: 'ex-8',
-        name: 'Flexão de Perna',
-        createdAt: new Date().toISOString(),
-        userId: 1,
-    },
-];
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { apiClient } from '@/services/api';
+import type { Exercise } from '@/types/workout-exercise';
 
 interface UseExercisesReturn {
     exercises: Exercise[];
     loading: boolean;
     error: string | null;
+    refetch: () => Promise<void>;
+    createExercise: (name: string) => Promise<Exercise>;
+    deleteExercise: (id: string) => Promise<void>;
 }
 
 export function useExercises(): UseExercisesReturn {
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Simular carregamento
-        const timer = setTimeout(() => {
-            setExercises(MOCK_EXERCISES);
+    const refetch = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await apiClient.getExercises();
+            setExercises(data);
+        } catch (err: any) {
+            setError(err.message || 'Erro ao carregar exercicios');
+            console.error('Error fetching exercises:', err);
+        } finally {
             setLoading(false);
-        }, 500);
+        }
+    }, []);
 
-        return () => clearTimeout(timer);
+    useFocusEffect(
+        useCallback(() => {
+            refetch().catch(() => undefined);
+        }, [refetch])
+    );
+
+    const createExercise = useCallback(async (name: string) => {
+        try {
+            setError(null);
+            const createdExercise = await apiClient.createExercise(name.trim());
+            setExercises((prev) =>
+                [...prev, createdExercise].sort((a, b) => a.name.localeCompare(b.name))
+            );
+            return createdExercise;
+        } catch (err: any) {
+            const errorMsg = err.message || 'Erro ao criar exercicio';
+            setError(errorMsg);
+            throw err;
+        }
+    }, []);
+
+    const deleteExercise = useCallback(async (id: string) => {
+        try {
+            setError(null);
+            await apiClient.deleteExercise(id);
+            setExercises((prev) => prev.filter((exercise) => exercise.id !== id));
+        } catch (err: any) {
+            const errorMsg = err.message || 'Erro ao remover exercicio';
+            setError(errorMsg);
+            throw err;
+        }
     }, []);
 
     return {
         exercises,
         loading,
-        error: null,
+        error,
+        refetch,
+        createExercise,
+        deleteExercise,
     };
 }

@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     MaterialCommunityIcons,
@@ -16,6 +17,7 @@ import {
 } from '@expo/vector-icons';
 
 export default function ExploreScreen() {
+    const router = useRouter();
     const { user, signOut } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -98,6 +100,30 @@ export default function ExploreScreen() {
                     <Text className="text-white text-lg font-firs-bold mb-4">
                         Ações
                     </Text>
+
+                    <TouchableOpacity
+                        className="bg-zinc-900 rounded-xl p-4 mb-3 flex-row items-center justify-between border border-zinc-800"
+                        onPress={() => router.push('/exercises')}
+                    >
+                        <View className="flex-row items-center gap-3">
+                            <View className="w-10 h-10 rounded-lg bg-orange-600/10 items-center justify-center">
+                                <MaterialCommunityIcons
+                                    name="dumbbell"
+                                    size={18}
+                                    color="#FF6800"
+                                />
+                            </View>
+                            <View>
+                                <Text className="text-white font-firs-bold text-base">
+                                    Meus ExercÃ­cios
+                                </Text>
+                                <Text className="text-zinc-400 font-firs-regular text-xs">
+                                    Gerencie o catÃ¡logo usado nos treinos
+                                </Text>
+                            </View>
+                        </View>
+                        <Feather name="chevron-right" size={20} color="#71717a" />
+                    </TouchableOpacity>
 
                     <TouchableOpacity className="bg-zinc-900 rounded-xl p-4 mb-3 flex-row items-center justify-between border border-zinc-800">
                         <View className="flex-row items-center gap-3">

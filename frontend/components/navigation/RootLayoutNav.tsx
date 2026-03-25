@@ -63,6 +63,11 @@ function RootLayoutNav() {
                 name="workouts-list"
                 options={{ title: 'Biblioteca' }}
             />
+
+            <Stack.Screen
+                name="exercises"
+                options={{ title: 'Exercicios' }}
+            />
         </Stack>
     );
 }

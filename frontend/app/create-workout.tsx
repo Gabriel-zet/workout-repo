@@ -19,6 +19,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useExerciseManager, Exercise } from '@/hooks/useExerciseManager';
 import { useWorkoutById } from '@/hooks/useWorkouts';
+import { useExercises } from '@/hooks/useExercises';
 import { ExerciseSelector } from '@/components/ui/modals/ExerciseSelector';
 import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
 import { SetManager } from '@/components/ui/forms/SetManager';
@@ -36,6 +37,11 @@ export default function CreateWorkoutScreen() {
     const workoutId = typeof params.id === 'string' ? params.id : '';
     const isEditing = workoutId.length > 0;
     const { workout, loading: workoutLoading } = useWorkoutById(workoutId);
+    const {
+        exercises: catalogExercises,
+        loading: catalogLoading,
+        refetch: refetchExercises,
+    } = useExercises();
 
     const [title, setTitle] = useState('');
     const [notes, setNotes] = useState('');
@@ -45,7 +51,6 @@ export default function CreateWorkoutScreen() {
 
     const {
         exercises,
-        getAvailableExercises,
         replaceExercises,
         addExercise,
         removeExercise,
@@ -86,6 +91,19 @@ export default function CreateWorkoutScreen() {
         },
         [addExercise]
     );
+
+    const handleOpenExerciseCatalog = useCallback(() => {
+        setShowExerciseSelector(false);
+        router.push('/exercises');
+    }, [router]);
+
+    const handleOpenSelector = useCallback(async () => {
+        if (!catalogLoading && catalogExercises.length === 0) {
+            await refetchExercises();
+        }
+
+        setShowExerciseSelector(true);
+    }, [catalogExercises.length, catalogLoading, refetchExercises]);
 
     const handleRemoveExercise = (id: string) => {
         Alert.alert(
@@ -211,7 +229,9 @@ export default function CreateWorkoutScreen() {
                         {!hasExercises ? (
                             <TouchableOpacity
                                 activeOpacity={0.8}
-                                onPress={() => setShowExerciseSelector(true)}
+                                onPress={() => {
+                                    handleOpenSelector().catch(() => undefined);
+                                }}
                                 className="bg-[#121212] rounded-[32px] p-10 items-center justify-center mb-4"
                             >
                                 <View className="items-center justify-center">
@@ -227,7 +247,9 @@ export default function CreateWorkoutScreen() {
                                         Adicionar Exercicio
                                     </Text>
                                     <Text className="text-zinc-500 font-firs-regular text-sm mt-1">
-                                        Monte sua rotina de treino agora
+                                        {catalogExercises.length === 0
+                                            ? 'Crie exercicios no catalogo para montar seu treino'
+                                            : 'Monte sua rotina de treino agora'}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -285,11 +307,26 @@ export default function CreateWorkoutScreen() {
                             <TouchableOpacity
                                 activeOpacity={0.7}
                                 className="bg-[#121212] rounded-[24px] py-4 flex-row items-center justify-center mt-2"
-                                onPress={() => setShowExerciseSelector(true)}
+                                onPress={() => {
+                                    handleOpenSelector().catch(() => undefined);
+                                }}
                             >
                                 <MaterialCommunityIcons name="plus" size={20} color="#a1a1aa" />
                                 <Text className="text-zinc-300 font-firs-medium text-base ml-2">
                                     Adicionar Outro Exercicio
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+
+                        {!hasExercises && (
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={handleOpenExerciseCatalog}
+                                className="bg-zinc-900 rounded-[24px] py-4 px-5 flex-row items-center justify-center"
+                            >
+                                <MaterialCommunityIcons name="playlist-plus" size={20} color="#FF6B00" />
+                                <Text className="text-white font-firs-medium text-base ml-2">
+                                    Gerenciar Catalogo de Exercicios
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -336,7 +373,9 @@ export default function CreateWorkoutScreen() {
                 visible={showExerciseSelector}
                 onClose={() => setShowExerciseSelector(false)}
                 onSelectExercise={handleAddExercise}
-                exercises={getAvailableExercises()}
+                exercises={catalogExercises}
+                loading={catalogLoading}
+                onManageExercises={handleOpenExerciseCatalog}
             />
         </SafeAreaView>
     );

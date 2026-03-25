@@ -7,51 +7,6 @@ import type {
 
 export type { Exercise, WorkoutExercise, Set };
 
-const MOCK_EXERCISES: Exercise[] = [
-    {
-        id: '1',
-        name: 'Supino Reto',
-        targetMuscle: 'Peito',
-        equipment: 'Halteres',
-        description: 'Exercicio de empurrar deitado',
-    },
-    {
-        id: '2',
-        name: 'Rosca Direta',
-        targetMuscle: 'Biceps',
-        equipment: 'Barra',
-        description: 'Flexao de cotovelo com barra',
-    },
-    {
-        id: '3',
-        name: 'Agachamento',
-        targetMuscle: 'Pernas',
-        equipment: 'Barra Olimpica',
-        description: 'Flexao de joelhos com carga',
-    },
-    {
-        id: '4',
-        name: 'Levantamento Terra',
-        targetMuscle: 'Costas',
-        equipment: 'Barra Olimpica',
-        description: 'Puxada do chao ate a cintura',
-    },
-    {
-        id: '5',
-        name: 'Barra Paralela',
-        targetMuscle: 'Triceps',
-        equipment: 'Barra Paralela',
-        description: 'Mergulho em barras paralelas',
-    },
-    {
-        id: '6',
-        name: 'Abdomen Maquina',
-        targetMuscle: 'Abdomen',
-        equipment: 'Maquina',
-        description: 'Flexao de abdomen na maquina',
-    },
-];
-
 function normalizeSet(set: Set, index: number): Set {
     return {
         ...set,
@@ -87,10 +42,6 @@ function normalizeWorkoutExercise(
 
 export function useExerciseManager() {
     const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
-
-    const getAvailableExercises = useCallback(() => {
-        return MOCK_EXERCISES;
-    }, []);
 
     const replaceExercises = useCallback((nextExercises: WorkoutExercise[]) => {
         setExercises(
@@ -224,7 +175,6 @@ export function useExerciseManager() {
 
     return {
         exercises,
-        getAvailableExercises,
         replaceExercises,
         addExercise,
         removeExercise,
