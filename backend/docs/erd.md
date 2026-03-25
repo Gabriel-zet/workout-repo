@@ -2,13 +2,13 @@
 
 ```mermaid
 erDiagram
-  User ||--o{ Workout : has
-  User ||--o{ Exercise : owns
+  User ||--o{ Workout : "tem"
+  User ||--o{ Exercise : "possui"
 
-  Workout ||--o{ WorkoutExercise : contains
-  Exercise ||--o{ WorkoutExercise : used_in
+  Workout ||--o{ WorkoutExercise : "contém"
+  Exercise ||--o{ WorkoutExercise : "usado_em"
 
-  WorkoutExercise ||--o{ Set : has
+  WorkoutExercise ||--o{ Set : "tem"
 
   User {
     Int id
