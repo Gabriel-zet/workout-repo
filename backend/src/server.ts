@@ -8,6 +8,7 @@ import { meRoutes } from "./routes/me.routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { exercisesRoutes } from "./routes/exercises.routes";
 import { workoutsExercisesRoutes } from "./routes/workoutsExercises.routes";
+import { setsRoutes } from "./routes/sets.routes";
 
 
 
@@ -22,7 +23,7 @@ app.use("/auth", authRoutes);
 app.use("/exercises", exercisesRoutes);
 app.use("/workout-exercises", workoutsExercisesRoutes);
 app.use(meRoutes);
-
+app.use(setsRoutes);
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
