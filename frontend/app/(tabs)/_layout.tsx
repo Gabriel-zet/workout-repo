@@ -32,8 +32,8 @@ type TabConfigItem = {
 const TAB_CONFIG: Record<string, TabConfigItem> = {
   index: {
     label: 'Home',
-    icon: 'home-fill', // Octicons usa home para outline/default
-    activeIcon: 'home-fill', // O Octicons não tem um "home-fill" explícito em algumas versões, mas o padrão já é sólido
+    icon: 'home-fill',
+    activeIcon: 'home-fill',
   },
   statistics: {
     label: 'Stats',
@@ -42,8 +42,8 @@ const TAB_CONFIG: Record<string, TabConfigItem> = {
   },
   explore: {
     label: 'Perfil',
-    icon: 'person-fill', // Octicons usa person para outline/default
-    activeIcon: 'person-fill', // O Octicons não tem um "person-fill" explícito em algumas versões, mas o padrão já é sólido
+    icon: 'person-fill',
+    activeIcon: 'person-fill',
   },
 };
 

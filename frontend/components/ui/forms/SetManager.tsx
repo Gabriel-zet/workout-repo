@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { WheelPickerModal } from '../modals/WheelPickerModal'; // <--- IMPORTAÇÃO AQUI
+import { WheelPickerModal } from '../modals/WheelPickerModal';
 
 export interface Set {
     id: string;
