@@ -1,5 +1,5 @@
 import { storage } from '@/services/storage';
-import type { WorkoutExercise } from '@/types/workout-exercise';
+import type { WorkoutExercise, WorkoutSet } from '@/types/workout-exercise';
 
 type HydratableWorkout = {
     id: string;
@@ -29,6 +29,19 @@ async function writeWorkoutExerciseMap(value: WorkoutExerciseMap): Promise<void>
     await storage.setItem(WORKOUT_EXERCISES_STORAGE_KEY, JSON.stringify(value));
 }
 
+function normalizeSet(set: WorkoutSet, index: number): WorkoutSet {
+    const numericWeight =
+        typeof set.weight === 'string' ? Number(set.weight) : set.weight;
+
+    return {
+        ...set,
+        order: set.order ?? index + 1,
+        reps: Number.isFinite(set.reps) ? set.reps : 0,
+        weight: Number.isFinite(numericWeight) ? numericWeight : 0,
+        completed: set.completed ?? false,
+    };
+}
+
 function normalizeWorkoutExercises(
     workoutExercises: WorkoutExercise[] | undefined
 ): WorkoutExercise[] {
@@ -47,32 +60,56 @@ function normalizeWorkoutExercises(
                 workoutExercise.exerciseId ||
                 `exercise-${exerciseIndex + 1}`,
         },
-        sets: (workoutExercise.sets ?? []).map((set, setIndex) => ({
-            ...set,
-            order: set.order ?? setIndex + 1,
-            reps: Number.isFinite(set.reps) ? set.reps : 0,
-            weight: Number.isFinite(set.weight) ? set.weight : 0,
-            completed: set.completed ?? false,
-        })),
+        sets: (workoutExercise.sets ?? []).map((set, setIndex) =>
+            normalizeSet(set, setIndex)
+        ),
     }));
+}
+
+function mergeWorkoutExercises(
+    backendExercises: WorkoutExercise[],
+    storedExercises: WorkoutExercise[]
+): WorkoutExercise[] {
+    if (backendExercises.length === 0) {
+        return storedExercises;
+    }
+
+    return backendExercises.map((backendExercise, index) => {
+        const storedExercise = storedExercises.find((candidate) => {
+            if (candidate.id === backendExercise.id) {
+                return true;
+            }
+
+            return (
+                candidate.exerciseId === backendExercise.exerciseId &&
+                (candidate.order ?? index + 1) === (backendExercise.order ?? index + 1)
+            );
+        });
+
+        if (!storedExercise) {
+            return backendExercise;
+        }
+
+        return {
+            ...backendExercise,
+            sets:
+                storedExercise.sets.length > 0
+                    ? storedExercise.sets
+                    : backendExercise.sets,
+        };
+    });
 }
 
 function applyWorkoutExercises<T extends HydratableWorkout>(
     workout: T,
     workoutExerciseMap: WorkoutExerciseMap
 ): T {
-    const storedWorkoutExercises = workoutExerciseMap[workout.id];
-
-    if (!storedWorkoutExercises) {
-        return {
-            ...workout,
-            workoutExercises: normalizeWorkoutExercises(workout.workoutExercises),
-        };
-    }
+    const backendExercises = normalizeWorkoutExercises(workout.workoutExercises);
+    const storedExercises = normalizeWorkoutExercises(workoutExerciseMap[workout.id]);
 
     return {
         ...workout,
-        workoutExercises: normalizeWorkoutExercises(storedWorkoutExercises),
+        workoutExercises: mergeWorkoutExercises(backendExercises, storedExercises),
     };
 }
 

@@ -275,6 +275,71 @@ class ApiClient {
     async deleteExercise(id: string): Promise<void> {
         return this.request('DELETE', `/exercises/${id}`, undefined, true);
     }
+
+    async createWorkoutExercise(input: {
+        workoutId: string;
+        exerciseId: string;
+        order: number;
+        notes?: string;
+    }): Promise<{
+        id: string;
+        order: number;
+        notes?: string | null;
+        workoutId: string;
+        exerciseId: string;
+        createdAt?: string;
+        updatedAt?: string;
+        exercise: {
+            id: string;
+            name: string;
+            createdAt?: string;
+            updatedAt?: string;
+            userId?: number;
+        };
+        sets: Array<{
+            id: string;
+            order: number;
+            reps: number | null;
+            weight: string | number | null;
+            createdAt?: string;
+            updatedAt?: string;
+        }>;
+    }> {
+        return this.request('POST', '/workout-exercises', input, true);
+    }
+
+    async getWorkoutExercisesByWorkout(workoutId: string): Promise<
+        Array<{
+            id: string;
+            order: number;
+            notes?: string | null;
+            workoutId: string;
+            exerciseId: string;
+            createdAt?: string;
+            updatedAt?: string;
+            exercise: {
+                id: string;
+                name: string;
+                createdAt?: string;
+                updatedAt?: string;
+                userId?: number;
+            };
+            sets: Array<{
+                id: string;
+                order: number;
+                reps: number | null;
+                weight: string | number | null;
+                createdAt?: string;
+                updatedAt?: string;
+            }>;
+        }>
+    > {
+        return this.request('GET', `/workout-exercises/workout/${workoutId}`, undefined, true);
+    }
+
+    async deleteWorkoutExercise(id: string): Promise<void> {
+        return this.request('DELETE', `/workout-exercises/${id}`, undefined, true);
+    }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

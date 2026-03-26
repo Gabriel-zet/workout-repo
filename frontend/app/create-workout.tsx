@@ -18,7 +18,7 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useExerciseManager, Exercise } from '@/hooks/useExerciseManager';
-import { useWorkoutById } from '@/hooks/useWorkouts';
+import { useWorkoutById, WorkoutExercise } from '@/hooks/useWorkouts';
 import { useExercises } from '@/hooks/useExercises';
 import { ExerciseSelector } from '@/components/ui/modals/ExerciseSelector';
 import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
@@ -123,7 +123,52 @@ export default function CreateWorkoutScreen() {
         );
     };
 
-    const handleSaveWorkout = async () => {
+    const syncWorkoutExercises = useCallback(
+        async (targetWorkoutId: string): Promise<WorkoutExercise[]> => {
+            const currentWorkoutExercises = await apiClient
+                .getWorkoutExercisesByWorkout(targetWorkoutId)
+                .catch((error: any) => {
+                    if (error?.status === 404) {
+                        return [];
+                    }
+
+                    throw error;
+                });
+
+            await Promise.all(
+                currentWorkoutExercises.map((workoutExercise) =>
+                    apiClient.deleteWorkoutExercise(workoutExercise.id)
+                )
+            );
+
+            const persistedExercises: WorkoutExercise[] = [];
+
+            for (const [index, workoutExercise] of exercises.entries()) {
+                const createdWorkoutExercise = await apiClient.createWorkoutExercise({
+                    workoutId: targetWorkoutId,
+                    exerciseId: workoutExercise.exerciseId,
+                    order: index + 1,
+                    notes: workoutExercise.notes ?? undefined,
+                });
+
+                persistedExercises.push({
+                    ...createdWorkoutExercise,
+                    exerciseId: createdWorkoutExercise.exerciseId,
+                    exercise: {
+                        ...workoutExercise.exercise,
+                        ...createdWorkoutExercise.exercise,
+                    },
+                    sets: workoutExercise.sets,
+                });
+            }
+
+            await saveWorkoutExercises(targetWorkoutId, persistedExercises);
+            return persistedExercises;
+        },
+        [exercises]
+    );
+
+    const handleSaveWorkout = useCallback(async () => {
         Keyboard.dismiss();
 
         if (!title.trim()) {
@@ -145,14 +190,14 @@ export default function CreateWorkoutScreen() {
                     notes: notes || null,
                     date: selectedDate,
                 });
-                await saveWorkoutExercises(workoutId, exercises);
+                await syncWorkoutExercises(workoutId);
             } else {
                 const createdWorkout = await apiClient.createWorkout(
                     selectedDate,
                     title,
                     notes
                 );
-                await saveWorkoutExercises(createdWorkout.id, exercises);
+                await syncWorkoutExercises(createdWorkout.id);
             }
 
             router.back();
@@ -165,7 +210,7 @@ export default function CreateWorkoutScreen() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [exercises.length, isEditing, notes, router, selectedDate, syncWorkoutExercises, title, workoutId]);
 
     if (isEditing && workoutLoading && !workout) {
         return (
