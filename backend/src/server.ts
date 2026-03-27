@@ -14,8 +14,9 @@ import { setsRoutes } from "./routes/sets.routes";
 
 const app = express();
 
+// cors deve ser restritivo antes de ir para produção /// -- => por enquanto vou manter assim por facilidade de desenvolvimento, mas depois tem que ser mais restritivo
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "150kb" }));
 
 app.use("/workouts", workoutsRoutes);
 app.use("/user", usersRoutes);
