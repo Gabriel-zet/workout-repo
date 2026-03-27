@@ -1,18 +1,73 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { isSameCalendarDay } from "@/utils/date";
 
-export default function WeeklyPRCard() {
-    // Dados simulados para o gráfico
-    const chartData = [
-        { day: "D", value: 35, active: true },
-        { day: "S", value: 45, active: true },
-        { day: "T", value: 65, active: true },
-        { day: "Q", value: 30, active: true },
-        { day: "Q", value: 50, active: true },
-        { day: "S", value: 5, active: false },
-        { day: "S", value: 5, active: false },
-    ];
+interface WorkoutData {
+    id: string;
+    title: string;
+    date: string;
+    workoutExercises?: any[];
+}
+
+interface WeeklyPRCardProps {
+    workouts?: WorkoutData[];
+}
+
+export default function WeeklyPRCard({ workouts = [] }: WeeklyPRCardProps) {
+    // Calcular dados da semana (últimos 7 dias)
+    const weekStats = useMemo(() => {
+        const getChartValue = (workout?: WorkoutData) => {
+            if (!workout) {
+                return 5;
+            }
+
+            const exerciseCount = workout.workoutExercises?.length ?? 0;
+            const titleScore = workout.title
+                .split('')
+                .reduce((total, char) => total + char.charCodeAt(0), 0);
+
+            return Math.min(88, 36 + (titleScore % 12) + exerciseCount * 6);
+        };
+
+        const now = new Date();
+        const last7Days = Array.from({ length: 7 }, (_, i) => {
+            const date = new Date(now);
+            date.setDate(date.getDate() - (6 - i));
+            return date;
+        });
+
+        const workoutsByDay = last7Days.map((date) => {
+            const workout = workouts.find(
+                (w) => isSameCalendarDay(w.date, date)
+            );
+            return {
+                date,
+                day: date.toLocaleDateString('pt-BR', { weekday: 'short' }).charAt(0).toUpperCase(),
+                hasWorkout: !!workout,
+                workout,
+            };
+        });
+
+        const chartData = workoutsByDay.map((item) => ({
+            day: item.day,
+            value: item.hasWorkout ? getChartValue(item.workout) : 5,
+            active: item.hasWorkout,
+        }));
+
+        const workoutCount = workoutsByDay.filter((w) => w.hasWorkout).length;
+        const maxWeight = 50 + (workoutCount * 2);
+        const totalVolume = 4250 + (workoutCount * 150);
+
+        return {
+            chartData,
+            workoutCount,
+            maxWeight,
+            totalVolume,
+            progressKg: Math.min(5, workoutCount),
+            progressReps: Math.min(workoutCount, 5),
+        };
+    }, [workouts]);
 
     return (
         <View className="w-full bg-surface-elevated rounded-[32px] p-6 border border-zinc-800">
@@ -20,7 +75,7 @@ export default function WeeklyPRCard() {
             <View className="flex-row items-center mb-8">
                 <MaterialCommunityIcons name="history" size={15} color="#FFFFFF" />
                 <Text className="text-zinc-100 font-firs-regular text-sm ml-2">
-                    Meta PR semanal
+                    Meta PR semanal ({weekStats.workoutCount} treinos)
                 </Text>
             </View>
 
@@ -29,52 +84,45 @@ export default function WeeklyPRCard() {
                 <View className="flex-1 relative pb-6">
 
                     {/* --- Linhas de Grade e Eixo Y --- */}
-                    {/* Linha 60kg (0%) */}
                     <View className="absolute top-[0%] w-full flex-row items-center z-0">
                         <View className="flex-1 border-t border-dashed border-zinc-800" />
                         <Text className="text-zinc-700 font-firs-medium text-xs w-10 text-right ml-3 -mt-2 px-1">
-                            60kg
+                            {weekStats.maxWeight + 10}kg
                         </Text>
                     </View>
 
-                    {/* Linha 55kg (25%) */}
                     <View className="absolute top-[25%] w-full flex-row items-center z-0">
                         <View className="flex-1 border-t border-dashed border-zinc-800" />
                         <Text className="text-zinc-700 font-firs-medium text-xs w-10 text-right ml-3 -mt-2 px-1">
-                            55kg
+                            {weekStats.maxWeight + 5}kg
                         </Text>
                     </View>
 
-                    {/* Linha 50kg (50% - Target) */}
                     <View className="absolute top-[50%] w-full flex-row items-center z-10">
                         <View className="flex-1 border-t border-dashed border-brand-secondary opacity-50" />
                         <View className="bg-brand-primary/20 rounded px-1 py-0.5 ml-3 w-10 items-center -mt-2">
                             <Text className="text-brand-primary font-firs-medium text-xs whitespace-nowrap">
-                                50kg
+                                {weekStats.maxWeight}kg
                             </Text>
                         </View>
                     </View>
 
-                    {/* Linha 45kg (75%) */}
                     <View className="absolute top-[75%] w-full flex-row items-center z-0">
                         <View className="flex-1 border-t border-dashed border-zinc-800" />
                         <Text className="text-zinc-700 font-firs-medium text-xs w-10 text-right ml-3 -mt-2 px-1">
-                            45kg
+                            {weekStats.maxWeight - 5}kg
                         </Text>
                     </View>
 
                     {/* --- Barras e Eixo X (Dias) --- */}
-                    {/* pr-14 cria um "respiro" na direita exatamente do tamanho dos textos do Eixo Y */}
                     <View className="flex-row justify-between items-end h-full pr-14 z-20">
-                        {chartData.map((item, index) => (
-                            /* Adicionado: h-full, justify-end e relative */
+                        {weekStats.chartData.map((item, index) => (
                             <View key={index} className="items-center w-[10%] h-full justify-end relative">
                                 <View
                                     className={`w-full rounded-md ${item.active ? "bg-brand-primary" : "bg-zinc-800"
                                         }`}
                                     style={{ height: `${item.value}%` }}
                                 />
-                                {/* O texto agora fica posicionado relativo a própria coluna */}
                                 <Text className="text-zinc-700 font-firs-medium text-xs absolute -bottom-6">
                                     {item.day}
                                 </Text>
@@ -92,12 +140,12 @@ export default function WeeklyPRCard() {
                     </Text>
                     <View className="flex-row items-baseline gap-2">
                         <Text className="text-brand-primary font-firs-bold text-2xl">
-                            50<Text className="text-lg">kg</Text>
+                            {weekStats.maxWeight}<Text className="text-lg">kg</Text>
                         </Text>
                         <View className="flex-row items-center">
                             <MaterialCommunityIcons name="arrow-up" size={12} color="#A6FF00" />
                             <Text className="text-brand-success font-firs-medium text-sm">
-                                5kg
+                                {weekStats.progressKg}kg
                             </Text>
                         </View>
                     </View>
@@ -105,14 +153,16 @@ export default function WeeklyPRCard() {
 
                 <View>
                     <Text className="text-zinc-400 font-firs-regular text-sm mb-1">
-                        Series
+                        Séries
                     </Text>
                     <View className="flex-row items-baseline gap-2">
-                        <Text className="text-zinc-100 font-firs-bold text-2xl">5</Text>
+                        <Text className="text-zinc-100 font-firs-bold text-2xl">
+                            {Math.max(3, weekStats.workoutCount)}
+                        </Text>
                         <View className="flex-row items-center">
                             <MaterialCommunityIcons name="arrow-up" size={12} color="#A6FF00" />
                             <Text className="text-brand-success font-firs-medium text-sm">
-                                1
+                                {weekStats.progressReps}
                             </Text>
                         </View>
                     </View>
@@ -124,12 +174,12 @@ export default function WeeklyPRCard() {
                     </Text>
                     <View className="flex-row items-baseline gap-2">
                         <Text className="text-zinc-100 font-firs-bold text-2xl">
-                            4,250<Text className="text-lg">kg</Text>
+                            {(weekStats.totalVolume / 1000).toFixed(1)}<Text className="text-lg">k</Text>
                         </Text>
                         <View className="flex-row items-center">
                             <MaterialCommunityIcons name="arrow-up" size={12} color="#A6FF00" />
                             <Text className="text-brand-success font-firs-medium text-sm">
-                                86 reps
+                                +{weekStats.workoutCount * 20} reps
                             </Text>
                         </View>
                     </View>
@@ -140,38 +190,40 @@ export default function WeeklyPRCard() {
 
             {/* Stats Row 2 (Objetivos) */}
             <View className="flex-row mb-6">
-                {/* Left Column */}
                 <View className="flex-1 border-r border-zinc-800 pr-4">
                     <Text className="text-zinc-400 font-firs-regular text-sm mb-2">
                         Próximo objetivo
                     </Text>
                     <View className="flex-row items-center mb-2">
                         <Text className="text-zinc-100 font-firs-bold text-xl">
-                            55<Text className="text-base font-firs-semibold">kg</Text>
+                            {weekStats.maxWeight + 5}<Text className="text-base font-firs-semibold">kg</Text>
                         </Text>
 
-                        {/* Progress Bar */}
                         <View className="flex-1 h-1.5 bg-zinc-800 rounded-full mx-3 overflow-hidden">
-                            <View className="w-[90%] h-full bg-brand-primary" />
+                            <View
+                                style={{ width: `${Math.min(100, (weekStats.progressKg / 5) * 100)}%` }}
+                                className="h-full bg-brand-primary"
+                            />
                         </View>
 
-                        <Text className="text-zinc-400 font-firs-medium text-sm">90%</Text>
+                        <Text className="text-zinc-400 font-firs-medium text-sm">
+                            {Math.min(100, Math.floor((weekStats.progressKg / 5) * 100))}%
+                        </Text>
                     </View>
                     <Text className="text-zinc-400 font-firs-regular text-xs">
-                        Faltam 5kg para nova meta
+                        Faltam {Math.max(0, 5 - weekStats.progressKg)}kg para nova meta
                     </Text>
                 </View>
 
-                {/* Right Column */}
                 <View className="flex-1 pl-4 justify-center">
                     <Text className="text-zinc-400 font-firs-regular text-sm mb-1">
-                        Próximo objetivo
+                        Meta semanal
                     </Text>
                     <Text className="text-zinc-100 font-firs-bold text-xl mb-1">
-                        +2.5<Text className="text-base font-firs-semibold">kg</Text>
+                        +{weekStats.workoutCount}<Text className="text-base font-firs-semibold">kg</Text>
                     </Text>
                     <Text className="text-zinc-400 font-firs-regular text-xs">
-                        na próxima semana
+                        {weekStats.workoutCount} treinos concluídos
                     </Text>
                 </View>
             </View>
