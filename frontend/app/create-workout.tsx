@@ -24,7 +24,10 @@ import { ExerciseSelector } from '@/components/ui/modals/ExerciseSelector';
 import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
 import { SetManager } from '@/components/ui/forms/SetManager';
 import { apiClient } from '@/services/api';
-import { saveWorkoutExercises } from '@/services/workout-exercise-storage';
+import {
+    normalizeWorkoutExerciseFromApi,
+    normalizeWorkoutSetFromApi,
+} from '@/utils/workout-exercise';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -151,18 +154,32 @@ export default function CreateWorkoutScreen() {
                     notes: workoutExercise.notes ?? undefined,
                 });
 
-                persistedExercises.push({
-                    ...createdWorkoutExercise,
-                    exerciseId: createdWorkoutExercise.exerciseId,
-                    exercise: {
-                        ...workoutExercise.exercise,
-                        ...createdWorkoutExercise.exercise,
-                    },
-                    sets: workoutExercise.sets,
-                });
+                const createdSets = [];
+
+                for (const [setIndex, set] of workoutExercise.sets.entries()) {
+                    const createdSet = await apiClient.createSet(createdWorkoutExercise.id, {
+                        order: set.order ?? setIndex + 1,
+                        reps: set.reps,
+                        weight: set.weight,
+                    });
+
+                    createdSets.push(
+                        normalizeWorkoutSetFromApi(createdSet, setIndex + 1)
+                    );
+                }
+
+                persistedExercises.push(
+                    normalizeWorkoutExerciseFromApi({
+                        ...createdWorkoutExercise,
+                        exercise: {
+                            ...workoutExercise.exercise,
+                            ...createdWorkoutExercise.exercise,
+                        },
+                        sets: createdSets,
+                    })
+                );
             }
 
-            await saveWorkoutExercises(targetWorkoutId, persistedExercises);
             return persistedExercises;
         },
         [exercises]
@@ -187,7 +204,7 @@ export default function CreateWorkoutScreen() {
             if (isEditing) {
                 await apiClient.updateWorkout(workoutId, {
                     title,
-                    notes: notes || null,
+                    notes,
                     date: selectedDate,
                 });
                 await syncWorkoutExercises(workoutId);

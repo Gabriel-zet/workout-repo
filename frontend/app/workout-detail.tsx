@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -19,7 +19,11 @@ import {
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { SetManager } from '@/components/ui/forms/SetManager';
 import { parseStoredDate } from '@/utils/date';
-import { saveWorkoutExercises } from '@/services/workout-exercise-storage';
+import { apiClient } from '@/services/api';
+import {
+    getNextSetOrder,
+    normalizeWorkoutExercisesFromApi,
+} from '@/utils/workout-exercise';
 
 export default function WorkoutDetailScreen() {
     const router = useRouter();
@@ -35,10 +39,21 @@ export default function WorkoutDetailScreen() {
         setExercises(workout?.workoutExercises ?? []);
     }, [workout]);
 
-    const persistExercises = async (nextExercises: WorkoutExercise[]) => {
+    const refreshExercises = useCallback(async () => {
         if (!workoutId) return;
-        await saveWorkoutExercises(workoutId, nextExercises);
-    };
+
+        const workoutExercises = await apiClient
+            .getWorkoutExercisesByWorkout(workoutId)
+            .catch((error: any) => {
+                if (error?.status === 404) {
+                    return [];
+                }
+
+                throw error;
+            });
+
+        setExercises(normalizeWorkoutExercisesFromApi(workoutExercises));
+    }, [workoutId]);
 
     const handleDelete = () => {
         Alert.alert('Deletar Treino', 'Tem certeza que deseja deletar este treino?', [
@@ -65,67 +80,90 @@ export default function WorkoutDetailScreen() {
         setId: string,
         updates: Partial<WorkoutSet>
     ) => {
-        const nextExercises = exercises.map((exercise) => {
-            if (exercise.id !== exerciseId) {
-                return exercise;
-            }
+        const payload: {
+            order?: number;
+            reps?: number | null;
+            weight?: number | null;
+        } = {};
 
-            return {
-                ...exercise,
-                sets: exercise.sets.map((set) =>
-                    set.id === setId ? { ...set, ...updates } : set
-                ),
-            };
-        });
+        if (updates.order !== undefined) payload.order = updates.order;
+        if (updates.reps !== undefined) payload.reps = updates.reps;
+        if (updates.weight !== undefined) payload.weight = updates.weight;
 
-        setExercises(nextExercises);
-        await persistExercises(nextExercises);
+        if (Object.keys(payload).length === 0) {
+            setExercises((currentExercises) =>
+                currentExercises.map((exercise) => {
+                    if (exercise.id !== exerciseId) {
+                        return exercise;
+                    }
+
+                    return {
+                        ...exercise,
+                        sets: exercise.sets.map((set) =>
+                            set.id === setId ? { ...set, ...updates } : set
+                        ),
+                    };
+                })
+            );
+            return;
+        }
+
+        try {
+            await apiClient.updateSet(exerciseId, setId, payload);
+            await refreshExercises();
+        } catch (error) {
+            console.error('Update set failed:', error);
+            Alert.alert('Ops!', 'Nao foi possivel atualizar a serie agora.');
+        }
     };
 
     const handleAddSet = async (exerciseId: string, reps: number, weight: number) => {
-        const nextExercises = exercises.map((exercise) => {
-            if (exercise.id !== exerciseId) {
-                return exercise;
-            }
+        const currentExercise = exercises.find((exercise) => exercise.id === exerciseId);
 
-            return {
-                ...exercise,
-                sets: [
-                    ...exercise.sets,
-                    {
-                        id: `set-${Date.now()}`,
-                        order: exercise.sets.length + 1,
-                        reps,
-                        weight,
-                        completed: false,
-                    },
-                ],
-            };
-        });
+        if (!currentExercise) {
+            return;
+        }
 
-        setExercises(nextExercises);
-        await persistExercises(nextExercises);
+        try {
+            await apiClient.createSet(exerciseId, {
+                order: getNextSetOrder(currentExercise.sets),
+                reps,
+                weight,
+            });
+            await refreshExercises();
+        } catch (error) {
+            console.error('Create set failed:', error);
+            Alert.alert('Ops!', 'Nao foi possivel adicionar a serie agora.');
+        }
     };
 
     const handleRemoveSet = async (exerciseId: string, setId: string) => {
-        const nextExercises = exercises.map((exercise) => {
-            if (exercise.id !== exerciseId) {
-                return exercise;
+        const currentExercise = exercises.find((exercise) => exercise.id === exerciseId);
+
+        if (!currentExercise) {
+            return;
+        }
+
+        const remainingSets = currentExercise.sets.filter((set) => set.id !== setId);
+
+        try {
+            await apiClient.deleteSet(exerciseId, setId);
+
+            for (const [index, set] of remainingSets.entries()) {
+                const nextOrder = index + 1;
+
+                if ((set.order ?? nextOrder) === nextOrder) {
+                    continue;
+                }
+
+                await apiClient.updateSet(exerciseId, set.id, { order: nextOrder });
             }
 
-            return {
-                ...exercise,
-                sets: exercise.sets
-                    .filter((set) => set.id !== setId)
-                    .map((set, index) => ({
-                        ...set,
-                        order: index + 1,
-                    })),
-            };
-        });
-
-        setExercises(nextExercises);
-        await persistExercises(nextExercises);
+            await refreshExercises();
+        } catch (error) {
+            console.error('Delete set failed:', error);
+            Alert.alert('Ops!', 'Nao foi possivel remover a serie agora.');
+        }
     };
 
     if (loading) {

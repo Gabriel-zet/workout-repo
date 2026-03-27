@@ -340,6 +340,97 @@ class ApiClient {
     async deleteWorkoutExercise(id: string): Promise<void> {
         return this.request('DELETE', `/workout-exercises/${id}`, undefined, true);
     }
+
+    async createSet(
+        workoutExerciseId: string,
+        input: {
+            order: number;
+            reps?: number | null;
+            weight?: number | null;
+        }
+    ): Promise<{
+        id: string;
+        order: number;
+        reps: number | null;
+        weight: string | null;
+        createdAt?: string;
+        updatedAt?: string;
+        workoutExerciseId: string;
+    }> {
+        return this.request(
+            'POST',
+            `/workout-exercises/${workoutExerciseId}/sets`,
+            {
+                order: input.order,
+                reps: input.reps ?? null,
+                weight:
+                    input.weight === undefined || input.weight === null
+                        ? null
+                        : input.weight.toFixed(2),
+            },
+            true
+        );
+    }
+
+    async listSets(workoutExerciseId: string): Promise<
+        Array<{
+            id: string;
+            order: number;
+            reps: number | null;
+            weight: string | null;
+            createdAt?: string;
+            updatedAt?: string;
+            workoutExerciseId: string;
+        }>
+    > {
+        return this.request('GET', `/workout-exercises/${workoutExerciseId}/sets`, undefined, true);
+    }
+
+    async updateSet(
+        workoutExerciseId: string,
+        setId: string,
+        input: {
+            order?: number;
+            reps?: number | null;
+            weight?: number | null;
+        }
+    ): Promise<{
+        id: string;
+        order: number;
+        reps: number | null;
+        weight: string | null;
+        createdAt?: string;
+        updatedAt?: string;
+        workoutExerciseId: string;
+    }> {
+        const body: {
+            order?: number;
+            reps?: number | null;
+            weight?: string | null;
+        } = {};
+
+        if (input.order !== undefined) body.order = input.order;
+        if (input.reps !== undefined) body.reps = input.reps;
+        if (input.weight !== undefined) {
+            body.weight = input.weight === null ? null : input.weight.toFixed(2);
+        }
+
+        return this.request(
+            'PUT',
+            `/workout-exercises/${workoutExerciseId}/sets/${setId}`,
+            body,
+            true
+        );
+    }
+
+    async deleteSet(workoutExerciseId: string, setId: string): Promise<void> {
+        return this.request(
+            'DELETE',
+            `/workout-exercises/${workoutExerciseId}/sets/${setId}`,
+            undefined,
+            true
+        );
+    }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

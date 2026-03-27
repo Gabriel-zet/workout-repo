@@ -1,16 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiClient } from '../services/api';
-import {
-    hydrateWorkout,
-    hydrateWorkouts,
-    removeStoredWorkoutExercises,
-} from '@/services/workout-exercise-storage';
+import { removeStoredWorkoutExercises } from '@/services/workout-exercise-storage';
 import type {
     Exercise,
     WorkoutExercise,
     WorkoutSet as Set,
 } from '@/types/workout-exercise';
+import { normalizeWorkoutExercisesFromApi } from '@/utils/workout-exercise';
 
 export type { Exercise, WorkoutExercise, Set };
 
@@ -23,24 +20,6 @@ export interface Workout {
     createdAt: string;
     updatedAt: string;
     workoutExercises?: WorkoutExercise[];
-}
-
-function normalizeWorkoutExercisesFromApi(workoutExercises: any[]): WorkoutExercise[] {
-    return workoutExercises.map((workoutExercise) => ({
-        ...workoutExercise,
-        notes: workoutExercise.notes ?? null,
-        exerciseId: workoutExercise.exerciseId || workoutExercise.exercise?.id,
-        sets: (workoutExercise.sets ?? []).map((set: any, index: number) => ({
-            ...set,
-            order: set.order ?? index + 1,
-            reps: set.reps ?? 0,
-            weight:
-                typeof set.weight === 'string'
-                    ? Number(set.weight)
-                    : (set.weight ?? 0),
-            completed: set.completed ?? false,
-        })),
-    }));
 }
 
 async function getWorkoutExercisesByWorkoutOrEmpty(workoutId: string) {
@@ -88,8 +67,7 @@ export function useWorkouts(): UseWorkoutsReturn {
             const workoutsWithExercises = await Promise.all(
                 (data || []).map((workout) => attachWorkoutExercisesToWorkout(workout))
             );
-            const hydrated = await hydrateWorkouts(workoutsWithExercises);
-            setWorkouts(hydrated);
+            setWorkouts(workoutsWithExercises);
         } catch (err: any) {
             setError(err.message || 'Erro ao carregar treinos');
             console.error('Error fetching workouts:', err);
@@ -110,14 +88,8 @@ export function useWorkouts(): UseWorkoutsReturn {
                 setError(null);
                 const newWorkout = await apiClient.createWorkout(date, title, notes);
                 const workoutWithExercises = await attachWorkoutExercisesToWorkout(newWorkout);
-                const hydrated = await hydrateWorkout(workoutWithExercises);
-
-                if (!hydrated) {
-                    throw new Error('Erro ao hidratar treino criado');
-                }
-
-                setWorkouts((prev) => [...prev, hydrated]);
-                return hydrated;
+                setWorkouts((prev) => [...prev, workoutWithExercises]);
+                return workoutWithExercises;
             } catch (err: any) {
                 const errorMsg = err.message || 'Erro ao criar treino';
                 setError(errorMsg);
@@ -150,17 +122,14 @@ export function useWorkouts(): UseWorkoutsReturn {
                     notes: updates.notes,
                 });
                 const workoutWithExercises = await attachWorkoutExercisesToWorkout(updated);
-                const hydrated = await hydrateWorkout(workoutWithExercises);
-
-                if (!hydrated) {
-                    throw new Error('Erro ao hidratar treino atualizado');
-                }
 
                 setWorkouts((prev) =>
-                    prev.map((workout) => (workout.id === id ? hydrated : workout))
+                    prev.map((workout) =>
+                        workout.id === id ? workoutWithExercises : workout
+                    )
                 );
 
-                return hydrated;
+                return workoutWithExercises;
             } catch (err: any) {
                 const errorMsg = err.message || 'Erro ao atualizar treino';
                 setError(errorMsg);
@@ -201,8 +170,7 @@ export function useWorkoutById(workoutId: string): UseWorkoutByIdReturn {
             setError(null);
             const data = await apiClient.getWorkoutById(workoutId);
             const workoutWithExercises = await attachWorkoutExercisesToWorkout(data);
-            const hydrated = await hydrateWorkout(workoutWithExercises);
-            setWorkout(hydrated);
+            setWorkout(workoutWithExercises);
         } catch (err: any) {
             setError(err.message || 'Erro ao carregar treino');
             console.error('Error fetching workout:', err);
