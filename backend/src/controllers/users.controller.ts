@@ -12,7 +12,7 @@ const createUserSchema = z.object({
 });
 
 export const usersController = {
-  // Cria um usuário
+  // Cria um usuário, isso pode ser usado para criar usuários administrativos ou para testes, já que o registro normal é feito via authController.register
   async create(req: Request, res: Response) {
     // payload da requisição
     const { body } = req;
@@ -26,6 +26,9 @@ export const usersController = {
     const user = await usersService.create(parsedBody);
     return res.status(201).json(user); 
   },
+
+
+  
   // Lista todos os usuários
   async list(_req: Request, res: Response) {
     const users = await usersService.list();
