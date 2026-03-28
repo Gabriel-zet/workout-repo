@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { View, useWindowDimensions, ScrollView, SafeAreaView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  useWindowDimensions,
+  ScrollView,
+  ActivityIndicator,
+  Text,
+  RefreshControl,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import StreakCard from '@/components/ui/cards/StreakCard';
 import ScalesCard from '@/components/ui/cards/ScalesCard';
 import WaterCard from '@/components/ui/cards/WaterCard';
@@ -7,76 +15,100 @@ import WorkoutCard from '@/components/ui/cards/WorkoutCard';
 import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
 import NavigationHud from '@/components/ui/navgation/NavgationHud';
 import WeeklyPRCard from '@/components/ui/cards/WeeklyPRCard';
+import { useWorkouts } from '@/hooks/useWorkouts';
+import { isSameCalendarDay } from '@/utils/date';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { workouts, loading, refetch } = useWorkouts();
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Grid 2x2
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  const workoutForDate = workouts.find((w) => {
+    return isSameCalendarDay(w.date, selectedDate);
+  });
+
   const numColumns = 2;
   const gap = 16;
-  // Descontando o padding lateral (32 = 16 de cada lado) e o gap central
   const itemWidth = (width - 32 - gap) / numColumns;
 
-  // Array de cards a renderizar
   const cards = [
     { id: '1', component: StreakCard },
     { id: '2', component: ScalesCard },
     { id: '3', component: WaterCard },
-    { id: '4', component: WorkoutCard },
+    { id: '4', component: WorkoutCard, data: workoutForDate },
   ];
 
   return (
     <SafeAreaView style={{ flex: 1 }} className="bg-[#09090b]">
-      {/* Trocamos a FlatList por uma ScrollView principal. 
-        Isso garante que nada se sobreponha se a tela do celular for menor que o conteúdo.
-      */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }} // Dá um respiro no final da tela
+        contentContainerStyle={{ paddingBottom: 32 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#FF6800"
+          />
+        }
       >
         <NavigationHud selectedDate={selectedDate} />
 
-        <HomeCalendar
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-        />
-
-        {/* Grid 2x2 construído com Flexbox (flexWrap).
-          Mais leve que a FlatList para poucos itens e não quebra o layout.
-        */}
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            paddingHorizontal: 16,
-            paddingVertical: 16,
-            justifyContent: 'space-between' // Espalha os itens automaticamente
-          }}
-        >
-          {cards.map((item) => {
-            const Card = item.component;
-            return (
-              <View
-                key={item.id}
-                style={{
-                  width: itemWidth,
-                  height: itemWidth,
-                  marginBottom: gap,
-                }}
-              >
-                <Card />
-              </View>
-            );
-          })}
+        <View className="px-5">
+          <HomeCalendar
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+          />
         </View>
 
-        {/* Envolvendo o componente em uma View com padding para alinhar com o grid */}
-        <View style={{ paddingHorizontal: 16 }}>
-          <WeeklyPRCard />
-        </View>
+        {loading && workouts.length === 0 ? (
+          <View className="flex-1 justify-center items-center py-16">
+            <ActivityIndicator size="large" color="#FF6800" />
+            <Text className="text-zinc-400 mt-4 font-firs-regular">
+              Carregando treinos...
+            </Text>
+          </View>
+        ) : (
+          <>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                paddingHorizontal: 16,
+                paddingVertical: 16,
+                justifyContent: 'space-between',
+              }}
+            >
+              {cards.map((item) => {
+                const Card = item.component;
+                return (
+                  <View
+                    key={item.id}
+                    style={{
+                      width: itemWidth,
+                      height: itemWidth,
+                      marginBottom: gap,
+                    }}
+                  >
+                    <Card data={item.data} />
+                  </View>
+                );
+              })}
+            </View>
 
+            <View style={{ paddingHorizontal: 16 }}>
+              <WeeklyPRCard workouts={workouts} />
+            </View>
+          </>
+        )}
       </ScrollView>
+
     </SafeAreaView>
   );
 }

@@ -16,10 +16,11 @@ type WeekDay = {
 };
 
 function getWeekDays(selectedDate: Date): WeekDay[] {
-    const currentDay = selectedDate.getDay();
+    const day = selectedDate.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // começa na segunda
 
     const startOfWeek = new Date(selectedDate);
-    startOfWeek.setDate(selectedDate.getDate() - currentDay);
+    startOfWeek.setDate(selectedDate.getDate() + diff);
 
     const weekLabels = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
@@ -38,7 +39,7 @@ function getWeekDays(selectedDate: Date): WeekDay[] {
             date: String(date.getDate()).padStart(2, '0'),
             fullDate: date,
             active: isSelected,
-            hasNotification: isSelected, // pode mudar depois
+            hasNotification: isSelected,
         });
     }
 
@@ -53,7 +54,7 @@ export default function HomeCalendar({
 
     return (
         <View>
-            <View className="flex-row justify-between items-center w-full px-5 my-5">
+            <View className="flex-row justify-between items-center w-full my-5">
                 {weekDays.map((item) => {
                     const isActive = item.active;
 
@@ -63,20 +64,19 @@ export default function HomeCalendar({
                             activeOpacity={0.8}
                             onPress={() => setSelectedDate(item.fullDate)}
                             className={`
-                items-center justify-between rounded-2xl
-                ${isActive
+                                items-center justify-between rounded-2xl
+                                ${isActive
                                     ? 'bg-white w-[14.2%] py-2 gap-2'
                                     : 'bg-[#1c1c1e] w-[13.5%] py-2 gap-1'
                                 }
-              `}
+                            `}
                         >
-                            {/* Dia + bolinha */}
                             <View className="flex-row items-center justify-center">
                                 <Text
                                     className={`
-                    font-firs-medium text-sm
-                    ${isActive ? 'text-black' : 'text-[#8e8e93]'}
-                  `}
+                                        font-firs-medium text-sm
+                                        ${isActive ? 'text-black' : 'text-[#8e8e93]'}
+                                    `}
                                     style={{ letterSpacing: 0.5 }}
                                 >
                                     {item.day}
@@ -87,14 +87,13 @@ export default function HomeCalendar({
                                 )}
                             </View>
 
-                            {/* Número */}
                             <Text
                                 className={`
-                  ${isActive
+                                    ${isActive
                                         ? 'text-black text-3xl font-firs-semibold'
                                         : 'text-[#8e8e93] text-xl font-firs-medium'
                                     }
-                `}
+                                `}
                                 style={{
                                     lineHeight: isActive ? 28 : 20,
                                     letterSpacing: -1,

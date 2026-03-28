@@ -19,7 +19,7 @@ module.exports = {
 
       colors: {
         // Cores de fundo e superfícies (Dark Mode)
-        background: "#000000",
+        background: "#121212",
         surface: {
           DEFAULT: "#090909",
           hover: "#121212",
