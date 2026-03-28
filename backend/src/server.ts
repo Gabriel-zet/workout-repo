@@ -1,21 +1,32 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import "dotenv/config";
+
+// rotas
 import { workoutsRoutes } from "./routes/workouts.routes";
 import { usersRoutes } from "./routes/users.routes";
 import { authRoutes } from "./routes/auth.routes";
 import { meRoutes } from "./routes/me.routes";
-import { errorHandler } from "./middlewares/errorHandler";
 import { exercisesRoutes } from "./routes/exercises.routes";
 import { workoutsExercisesRoutes } from "./routes/workoutsExercises.routes";
 import { setsRoutes } from "./routes/sets.routes";
+
+// middlewares
+import { errorHandler } from "./middlewares/errorHandler";
+import { globalLimiter } from "./middlewares/rateLimiter";
+
 
 
 
 const app = express();
 
+app.use(helmet());
+// cors deve ser restritivo antes de ir para produção /// -- => por enquanto vou manter assim por facilidade de desenvolvimento, mas depois tem que ser mais restritivo
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "150kb" }));
+
+app.use(globalLimiter); 
 
 app.use("/workouts", workoutsRoutes);
 app.use("/user", usersRoutes);
