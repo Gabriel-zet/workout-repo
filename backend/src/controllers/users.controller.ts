@@ -1,15 +1,9 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
+import { createUserSchema } from "../schemas/users.schema.js";
 import { usersService } from "../services/users.service";   
 
-// Schema de validação para criação de usuário
-// - name: obrigatório e não pode ser vazio
-// - email: obrigatório, formato de email      
-const createUserSchema = z.object({
-  name: z.string().min(1),
-  email: z.email(),
-  password: z.string().min(6),
-});
+
 
 export const usersController = {
   // Cria um usuário

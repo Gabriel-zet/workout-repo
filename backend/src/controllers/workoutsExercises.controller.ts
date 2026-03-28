@@ -1,13 +1,7 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
+import { addSchema } from "../schemas/workout.schema.js";
 import { workoutExercisesService } from "../services/workoutExercises.service.js";
 
-const addSchema = z.object({
-  workoutId: z.string().min(1),
-  exerciseId: z.string().min(1),
-  order: z.number().int().min(1),
-  notes: z.string().optional(),
-});
 
 
 export const workoutExercisesController = {

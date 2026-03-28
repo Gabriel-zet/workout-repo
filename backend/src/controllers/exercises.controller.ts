@@ -1,10 +1,8 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
+import { createExerciseSchema } from "../schemas/exercises.schema.js";
 import { exercisesService } from "../services/exercises.service.js";
 
-const createExerciseSchema = z.object({
-  name: z.string().min(1).max(80),
-});
+
 
 export const exercisesController = {
   async create(req: Request, res: Response) {

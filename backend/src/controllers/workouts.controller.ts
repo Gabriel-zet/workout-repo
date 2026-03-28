@@ -1,25 +1,8 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
+import { createWorkoutSchema, updateWorkoutSchema } from "../schemas/workout.schema.js";
 import { workoutsService } from "../services/workouts.service";
 
-// Schema de validação para CRIAÇÃO de workout
-// - date: aceita string e converte para Date (z.coerce.date())
-// - title: obrigatório e não pode ser vazio
-// - notes: opcional
-const createWorkoutSchema = z.object({
-  date: z.coerce.date(), // aceita string ISO (ou similar) e converte pra Date
-  title: z.string().min(1),
-  notes: z.string().optional(),
-});
 
-// Schema de validação para ATUALIZAÇÃO (PATCH/PUT)
-// Tudo opcional, porque pode-se atualizar apenas parte dos campos
-// notes permite null
-const updateWorkoutSchema = z.object({
-  date: z.coerce.date().optional(),
-  title: z.string().min(1).optional(),
-  notes: z.string().nullable().optional(),
-});
 
 export const workoutsController = {
 

@@ -1,18 +1,7 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
+import { createSetSchema, updateSetSchema } from "../schemas/set.schema.js";
 import { setsService } from "../services/sets.service.js";
 
-const createSetSchema = z.object({
-  order: z.number().int().min(1),
-  reps: z.number().int().min(0).optional().nullable(),
-  weight: z.string().regex(/^\d+(\.\d{1,2})?$/).optional().nullable(), // "40" | "40.5" | "40.50"
-});
-
-const updateSetSchema = z.object({
-  order: z.number().int().min(1).optional(),
-  reps: z.number().int().min(0).optional().nullable(),
-  weight: z.string().regex(/^\d+(\.\d{1,2})?$/).optional().nullable(),
-});
 
 export const setsController = {
   async create(req: Request, res: Response) {
