@@ -27,12 +27,6 @@ export const usersService = {
 
   async authenticate(input: { email: string; password: string }) {
 
-    console.log("jwt typeof:", typeof jwt);
-    console.log("jwt keys:", Object.keys(jwt));
-    console.log("jwt.sign typeof:", typeof (jwt as any).sign);
-    console.log("jwt.default typeof:", typeof (jwt as any).default);
-    console.log("jwt.default?.sign typeof:", typeof (jwt as any).default?.sign);
-
     const user = await userRepo.findByEmail(input.email);
     if (!user) return null;
 
