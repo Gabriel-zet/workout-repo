@@ -35,10 +35,12 @@ app.use("/exercises", exercisesRoutes);
 app.use("/workout-exercises", workoutsExercisesRoutes);
 app.use(meRoutes);
 app.use(setsRoutes);
+
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
+//middleware de tratamento de erros
 app.use(errorHandler);
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
