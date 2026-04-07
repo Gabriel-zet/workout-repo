@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { formatWeekdayName, formatWeeklySchedule } from '@/utils/date';
 
 interface WorkoutData {
     id: string;
@@ -13,9 +14,10 @@ interface WorkoutData {
 
 interface WorkoutCardProps {
     data?: WorkoutData;
+    selectedDate?: Date;
 }
 
-export default function WorkoutCard({ data }: WorkoutCardProps) {
+export default function WorkoutCard({ data, selectedDate }: WorkoutCardProps) {
     const router = useRouter();
 
     const handleViewWorkout = () => {
@@ -27,23 +29,9 @@ export default function WorkoutCard({ data }: WorkoutCardProps) {
         }
     };
 
-    const getEstimatedDuration = () => {
-        // Mock: calcular duração estimada baseada no title
-        if (data?.title?.toLowerCase().includes('push')) {
-            return '1h:30m';
-        } else if (data?.title?.toLowerCase().includes('pull')) {
-            return '1h:45m';
-        } else if (data?.title?.toLowerCase().includes('leg')) {
-            return '2h:00m';
-        }
-        return '1h:00m';
-    };
-
     return (
         <View className="w-full h-full" style={{ aspectRatio: 1 }}>
-            <View
-                className="bg-[#111111] rounded-[36px] p-5 overflow-hidden flex-1 flex">
-
+            <View className="bg-[#111111] rounded-[36px] p-5 overflow-hidden flex-1 flex">
                 {/* IMAGEM (Ramon Dino) */}
                 <View className="absolute right-[-60px] top-[20%] bottom-[-90px] w-[120px] overflow-hidden">
                     <Image
@@ -58,13 +46,13 @@ export default function WorkoutCard({ data }: WorkoutCardProps) {
                     />
                 </View>
 
-                {/* CONTEÚDO */}
+                {/* CONTEUDO */}
                 <View className="flex-col">
-                    {/* Cabeçalho */}
+                    {/* Cabecalho */}
                     <View className="flex-row items-center">
                         <FontAwesome5 name="dumbbell" size={12} color="#FFFFFF" />
                         <Text className="text-white text-sm font-firs-regular ml-2.5">
-                            {data ? 'Treino planejado' : 'Nenhum treino'}
+                            {data ? 'Treino da semana' : 'Nenhum treino'}
                         </Text>
                     </View>
 
@@ -75,9 +63,9 @@ export default function WorkoutCard({ data }: WorkoutCardProps) {
                             </Text>
 
                             <View className="flex-row items-center">
-                                <Ionicons name="alarm" size={12} color="#FFFFFF" />
+                                <Ionicons name="calendar-outline" size={12} color="#FFFFFF" />
                                 <Text className="text-white ml-1 text-sm font-firs-regular">
-                                    {getEstimatedDuration()}
+                                    {formatWeeklySchedule(data.date)}
                                 </Text>
                             </View>
                             <TouchableOpacity
@@ -92,10 +80,12 @@ export default function WorkoutCard({ data }: WorkoutCardProps) {
                     ) : (
                         <View className="gap-3 mt-2">
                             <Text className="text-zinc-500 text-base font-firs-regular">
-                                Sem treino hoje
+                                {selectedDate
+                                    ? `Sem treino para ${formatWeekdayName(selectedDate)}`
+                                    : 'Sem treino nesse dia'}
                             </Text>
                             <Text className="text-zinc-600 text-sm font-firs-regular">
-                                Planeja seu treino para começar
+                                Escolha outro dia da semana ou crie um treino
                             </Text>
                         </View>
                     )}
