@@ -23,6 +23,8 @@ export const userRepo = {
                 email: true,
                 createdAt: true,
                 passwordHash: false,
+                refreshToken: true,
+                refreshTokenExpiresAt: true,
     },
         });
     },
@@ -34,6 +36,32 @@ export const userRepo = {
 
     findByEmail(email: string) {
         return prisma.user.findUnique({ where: { email } });
-
 },
+
+    async updateRefreshToken(
+        userId: number,
+        refreshToken: string,
+        expiresAt: Date
+    ) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+            refreshToken,
+            refreshTokenExpiresAt: expiresAt,
+        },
+        });
+    },
+
+     // ✅ Invalidar refresh token (logout)
+    async invalidateRefreshToken(userId: number) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+            refreshToken: null,
+            refreshTokenExpiresAt: null,
+        },
+        });
+    }
+
+
 };

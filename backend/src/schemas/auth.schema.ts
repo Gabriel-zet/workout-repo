@@ -46,3 +46,9 @@ export const registerSchema = z.object({
     path: ["confirmPassword"],
   }),
 });
+
+export const refreshSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1, "Refresh token obrigatório"),
+  }),
+});

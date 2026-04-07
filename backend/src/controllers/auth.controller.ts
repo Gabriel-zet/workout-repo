@@ -5,20 +5,20 @@ import { usersService } from "../services/users.service";
 
 export const authController = {
   async login(req: Request, res: Response) {
-    const token = await usersService.authenticate(req.body);
+    const tokens = await usersService.authenticate(req.body);
 
-    if (!token) {
+    if (!tokens) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    return res.json({ token });
+    return res.json({ tokens });
   },
 
   async register(req: Request, res: Response) {
     try {
       const user = await usersService.create(req.body);
-
-      const token = await usersService.authenticate({
+      // Após criar o usuário, já autentica e retorna os tokens
+      const tokens = await usersService.authenticate({
         email: req.body.email,
         password: req.body.password,
       });
@@ -30,18 +30,42 @@ export const authController = {
           email: user.email,
           name: user.name,
         },
-        token,
+        ...tokens,
       });
     } catch (error: any) {
+      console.error("❌ Register Error:", error);
+      console.error("❌ Error Message:", error.message);
+      console.error("❌ Error Code:", error.code);
+
       if (error.message?.includes("unique")) {
         return res.status(409).json({ message: "Email already registered" });
       }
-
-      return res.status(500).json({ message: "Error creating user" });
+      // 
+      return res.status(500).json({ 
+        message: "Error creating user",
+        error: error.message,
+      });
     }
   },
 
   async logout(req: Request, res: Response) {
-    res.json({ message: "Logout realizado com sucesso" });
+    await usersService.logout(req.userId!);
+    return res.json({ message: "Logged out successfully" });
+  },
+
+  async refresh(req: Request, res: Response) {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Refresh token required" });
+    }
+
+    const tokens = await usersService.refreshAccessToken(refreshToken);
+
+    if (!tokens) {
+      return res.status(401).json({ message: "Invalid or expired refresh token" });
+    }
+
+    return res.json(tokens);
   },
 };
