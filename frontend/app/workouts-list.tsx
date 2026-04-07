@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useWorkouts } from '@/hooks/useWorkouts';
-import { parseStoredDate } from '@/utils/date';
+import { formatWeeklySchedule } from '@/utils/date';
 
 export default function WorkoutsListScreen() {
     const router = useRouter();
@@ -28,22 +28,21 @@ export default function WorkoutsListScreen() {
     const handleDeleteWorkout = useCallback(
         (id: string, title: string) => {
             Alert.alert(
-                'Deletar Treino',
-                `Tem certeza que deseja deletar "${title}"?`,
+                'Excluir treino',
+                `Tem certeza que deseja excluir "${title}"?`,
                 [
-                    { text: 'Cancelar', onPress: () => { }, style: 'cancel' },
+                    { text: 'Cancelar', style: 'cancel' },
                     {
-                        text: 'Deletar',
+                        text: 'Excluir',
+                        style: 'destructive',
                         onPress: async () => {
                             try {
                                 await deleteWorkout(id);
-                                Alert.alert('Sucesso', 'Treino deletado com sucesso');
                             } catch (error) {
                                 console.error('Delete workout failed:', error);
-                                Alert.alert('Erro', 'Falha ao deletar treino');
+                                Alert.alert('Erro', 'Falha ao excluir treino');
                             }
                         },
-                        style: 'destructive',
                     },
                 ]
             );
@@ -51,62 +50,114 @@ export default function WorkoutsListScreen() {
         [deleteWorkout]
     );
 
-    const handleEditWorkout = (id: string) => {
-        router.push({
-            pathname: '/create-workout',
-            params: { id },
-        });
-    };
+    const handleEditWorkout = useCallback(
+        (id: string) => {
+            router.push({
+                pathname: '/create-workout',
+                params: { id },
+            });
+        },
+        [router]
+    );
+
+    const handleOpenWorkout = useCallback(
+        (id: string) => {
+            router.push({
+                pathname: '/workout-detail',
+                params: { id },
+            });
+        },
+        [router]
+    );
 
     if (loading && workouts.length === 0) {
         return (
             <SafeAreaView className="flex-1 bg-[#09090b] justify-center items-center">
-                <ActivityIndicator size="large" color="#A6FF00" />
+                <ActivityIndicator size="large" color="#FF6800" />
             </SafeAreaView>
         );
     }
 
     return (
         <SafeAreaView className="flex-1 bg-[#09090b]">
-            <View className="px-4 py-4 border-b border-zinc-800">
-                <View className="flex-row items-center justify-between">
-                    <View>
-                        <Text className="text-white font-firs-bold text-2xl">
-                            Meus Treinos
-                        </Text>
-                        <Text className="text-zinc-400 font-firs-regular text-sm">
-                            {workouts.length} treino{workouts.length !== 1 ? 's' : ''}
-                        </Text>
-                    </View>
+            <View className="px-6 pt-4 pb-5">
+                <View className="flex-row items-center justify-between mb-8">
                     <TouchableOpacity
-                        className="bg-brand-primary rounded-full w-12 h-12 items-center justify-center"
-                        onPress={() => router.push('/create-workout')}
+                        activeOpacity={0.85}
+                        onPress={() => router.back()}
+                        className="w-11 h-11 rounded-full bg-[#141416] items-center justify-center"
                     >
-                        <MaterialCommunityIcons name="plus" size={24} color="#09090b" />
+                        <Feather name="chevron-left" size={20} color="#fff" />
                     </TouchableOpacity>
+
+                    <Text className="text-white text-[20px] font-firs-bold">
+                        Meus treinos
+                    </Text>
+
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={() => router.push('/create-workout')}
+                        className="w-11 h-11 rounded-full bg-[#141416] items-center justify-center"
+                    >
+                        <Feather name="plus" size={20} color="#fff" />
+                    </TouchableOpacity>
+                </View>
+
+                <View className="overflow-hidden">
+                    <View className="flex-row items-end justify-between">
+                        <View className="flex-1 pr-4">
+                            <Text className="text-zinc-500 text-[13px] font-firs-regular mb-2">
+                                Total de treinos
+                            </Text>
+                            <Text className="text-white text-[42px] leading-[46px] font-firs-bold tracking-tight">
+                                {workouts.length}
+                            </Text>
+                        </View>
+
+                        <View className="items-end">
+                            <Text className="text-zinc-500 text-[12px] font-firs-medium mb-2">
+                                Sequência atual
+                            </Text>
+                            <View className="flex-row items-center">
+                                <MaterialCommunityIcons
+                                    name="fire"
+                                    size={16}
+                                    color="#FF6800"
+                                />
+                                <Text className="text-white text-[18px] font-firs-bold ml-2">
+                                    {workouts.length} dias
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
                 </View>
             </View>
 
             {workouts.length === 0 ? (
-                <View className="flex-1 justify-center items-center px-4">
-                    <MaterialCommunityIcons
-                        name="dumbbell"
-                        size={64}
-                        color="#71717a"
-                        style={{ marginBottom: 16 }}
-                    />
-                    <Text className="text-white font-firs-bold text-lg mb-2">
-                        Nenhum Treino Ainda
+                <View className="flex-1 px-6 pb-10 items-center justify-center">
+                    <View className="w-20 h-20 rounded-full bg-[#141416] items-center justify-center mb-5">
+                        <MaterialCommunityIcons
+                            name="dumbbell"
+                            size={32}
+                            color="#71717a"
+                        />
+                    </View>
+
+                    <Text className="text-white text-[20px] font-firs-bold mb-2">
+                        Nenhum treino salvo
                     </Text>
-                    <Text className="text-zinc-400 font-firs-regular text-center mb-6">
-                        Crie seu primeiro treino para começar a acompanhar seu progresso
+
+                    <Text className="text-zinc-500 text-[14px] text-center leading-5 font-firs-regular mb-8">
+                        Crie seu primeiro treino para começar a organizar sua rotina.
                     </Text>
+
                     <TouchableOpacity
-                        className="bg-brand-primary px-6 py-3 rounded-lg"
+                        activeOpacity={0.85}
                         onPress={() => router.push('/create-workout')}
+                        className="bg-[#141416] rounded-[22px] px-5 py-4"
                     >
-                        <Text className="text-zinc-900 font-firs-bold">
-                            Criar Primeiro Treino
+                        <Text className="text-white text-[15px] font-firs-medium">
+                            Criar treino
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -114,103 +165,12 @@ export default function WorkoutsListScreen() {
                 <FlatList
                     data={workouts}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => {
-                        const date = parseStoredDate(item.date);
-                        const dateStr = date.toLocaleDateString('pt-BR', {
-                            weekday: 'short',
-                            day: '2-digit',
-                            month: '2-digit',
-                        });
-
-                        return (
-                            <TouchableOpacity
-                                activeOpacity={0.7}
-                                onPress={() => router.push({
-                                    pathname: '/workout-detail',
-                                    params: { id: item.id },
-                                })}
-                                className="mx-4 mb-3 bg-zinc-800 rounded-lg p-4"
-                            >
-                                <View className="flex-row items-start justify-between mb-3">
-                                    <View className="flex-1">
-                                        <Text className="text-white font-firs-bold text-base mb-1">
-                                            {item.title}
-                                        </Text>
-                                        <View className="flex-row items-center gap-2">
-                                            <MaterialCommunityIcons
-                                                name="calendar"
-                                                size={14}
-                                                color="#71717a"
-                                            />
-                                            <Text className="text-zinc-400 font-firs-regular text-xs">
-                                                {dateStr}
-                                            </Text>
-                                        </View>
-                                    </View>
-
-                                    <View className="flex-row gap-2">
-                                        <TouchableOpacity
-                                            className="bg-brand-primary/20 rounded-lg px-3 py-2"
-                                            onPress={() => handleEditWorkout(item.id)}
-                                        >
-                                            <MaterialCommunityIcons
-                                                name="pencil"
-                                                size={16}
-                                                color="#A6FF00"
-                                            />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            className="bg-red-500/20 rounded-lg px-3 py-2"
-                                            onPress={() =>
-                                                handleDeleteWorkout(item.id, item.title)
-                                            }
-                                        >
-                                            <MaterialCommunityIcons
-                                                name="delete"
-                                                size={16}
-                                                color="#FF6B6B"
-                                            />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                {item.notes && (
-                                    <Text
-                                        className="text-zinc-400 font-firs-regular text-xs mb-3"
-                                        numberOfLines={2}
-                                    >
-                                        {item.notes}
-                                    </Text>
-                                )}
-
-                                <View className="flex-row gap-3 pt-3 border-t border-zinc-700">
-                                    <View className="flex-1">
-                                        <Text className="text-zinc-500 font-firs-regular text-xs">
-                                            Exercícios
-                                        </Text>
-                                        <Text className="text-white font-firs-bold">
-                                            {item.workoutExercises?.length || 0}
-                                        </Text>
-                                    </View>
-                                    <View className="flex-1">
-                                        <Text className="text-zinc-500 font-firs-regular text-xs">
-                                            Status
-                                        </Text>
-                                        <View className="flex-row items-center gap-1">
-                                            <View className="w-2 h-2 rounded-full bg-green-500" />
-                                            <Text className="text-green-500 font-firs-bold text-sm">
-                                                Salvo
-                                            </Text>
-                                        </View>
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    }}
                     contentContainerStyle={{
-                        paddingVertical: 12,
-                        paddingBottom: 80,
+                        paddingHorizontal: 24,
+                        paddingTop: 4,
+                        paddingBottom: 96,
                     }}
+                    showsVerticalScrollIndicator={false}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -218,7 +178,93 @@ export default function WorkoutsListScreen() {
                             tintColor="#FF6800"
                         />
                     }
-                    showsVerticalScrollIndicator={false}
+                    ItemSeparatorComponent={() => <View className="h-4" />}
+                    renderItem={({ item }) => {
+                        const dateStr = formatWeeklySchedule(item.date);
+                        const exerciseCount = item.workoutExercises?.length || 0;
+
+                        return (
+                            <TouchableOpacity
+                                activeOpacity={0.92}
+                                onPress={() => handleOpenWorkout(item.id)}
+                                className="overflow-hidden rounded-[28px] border border-white/10 bg-[#111114]/85"
+                            >
+                                <View className="px-5 py-5">
+                                    {/* Header */}
+                                    <View className="mb-5 flex-row items-start justify-between">
+                                        <View className="flex-1 pr-3">
+
+                                            <Text
+                                                numberOfLines={1}
+                                                className="text-[24px] font-firs-bold tracking-tight text-white"
+                                            >
+                                                {item.title}
+                                            </Text>
+
+                                            {item.notes ? (
+                                                <Text
+                                                    numberOfLines={2}
+                                                    className="mt-2 text-[13px] leading-5 text-zinc-400"
+                                                >
+                                                    {item.notes}
+                                                </Text>
+                                            ) : (
+                                                <Text className="mt-2 text-[13px] text-zinc-500">
+                                                    Toque para ver os detalhes do treino
+                                                </Text>
+                                            )}
+                                        </View>
+
+                                        <View className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
+                                            <Text className="text-[11px] font-firs-medium text-zinc-300">
+                                                {dateStr}
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    {/* Main metric */}
+                                    <View className="mb-5 flex-row items-end justify-between">
+                                        <View>
+                                            <Text className="mb-1 text-[11px] font-firs-medium uppercase tracking-wide text-zinc-500">
+                                                Exercícios
+                                            </Text>
+                                            <Text className="text-[38px] font-firs-bold leading-none text-white">
+                                                {exerciseCount}
+                                            </Text>
+                                        </View>
+
+                                        <View className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5">
+                                            <View className="flex-row items-center">
+                                                <View className="mr-2 h-2 w-2 rounded-full bg-emerald-400" />
+                                                <Text className="text-[11px] font-firs-bold uppercase tracking-wide text-emerald-300">
+                                                    Salvo
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    {/* Footer */}
+                                    <View className="flex-row items-center">
+                                        <TouchableOpacity
+                                            activeOpacity={0.8}
+                                            onPress={() => handleEditWorkout(item.id)}
+                                            className="mr-2 h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5"
+                                        >
+                                            <Feather name="edit-2" size={16} color="#a1a1aa" />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            activeOpacity={0.8}
+                                            onPress={() => handleDeleteWorkout(item.id, item.title)}
+                                            className="h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10"
+                                        >
+                                            <Feather name="trash-2" size={16} color="#f87171" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    }}
                 />
             )}
         </SafeAreaView>
