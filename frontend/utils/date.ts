@@ -24,6 +24,30 @@ export function parseStoredDate(value: string): Date {
     return parseDateInput(getStoredDateKey(value));
 }
 
+export function getWeekdayIndex(value: string | Date): number {
+    const date = typeof value === 'string' ? parseStoredDate(value) : value;
+    return date.getDay();
+}
+
+export function isSameWeekday(a: string | Date, b: string | Date): boolean {
+    return getWeekdayIndex(a) === getWeekdayIndex(b);
+}
+
+export function formatWeekdayName(
+    value: string | Date,
+    format: 'long' | 'short' = 'long'
+): string {
+    const date = typeof value === 'string' ? parseStoredDate(value) : value;
+    const weekday = date.toLocaleDateString('pt-BR', { weekday: format });
+    return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+}
+
+export function formatWeeklySchedule(value: string | Date): string {
+    const date = typeof value === 'string' ? parseStoredDate(value) : value;
+    const weekday = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+    return weekday;
+}
+
 export function formatDateInputValue(value: string | Date): string {
     if (typeof value === 'string') {
         return getStoredDateKey(value);
@@ -43,4 +67,23 @@ export function startOfLocalDay(date: Date): Date {
     const value = new Date(date);
     value.setHours(0, 0, 0, 0);
     return value;
+}
+
+export function alignDateToCurrentWeek(
+    value: string | Date,
+    reference: Date = new Date()
+): Date {
+    const normalizedReference = startOfLocalDay(reference);
+    const currentWeekday = normalizedReference.getDay();
+    const diffToMonday = currentWeekday === 0 ? -6 : 1 - currentWeekday;
+
+    const startOfWeek = new Date(normalizedReference);
+    startOfWeek.setDate(normalizedReference.getDate() + diffToMonday);
+
+    const targetWeekday = getWeekdayIndex(value);
+    const mondayBasedTarget = targetWeekday === 0 ? 6 : targetWeekday - 1;
+
+    const alignedDate = new Date(startOfWeek);
+    alignedDate.setDate(startOfWeek.getDate() + mondayBasedTarget);
+    return alignedDate;
 }

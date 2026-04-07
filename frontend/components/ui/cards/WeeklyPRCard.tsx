@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { isSameCalendarDay } from "@/utils/date";
+import { isSameWeekday } from "@/utils/date";
 
 interface WorkoutData {
     id: string;
@@ -39,7 +39,7 @@ export default function WeeklyPRCard({ workouts = [] }: WeeklyPRCardProps) {
 
         const workoutsByDay = last7Days.map((date) => {
             const workout = workouts.find(
-                (w) => isSameCalendarDay(w.date, date)
+                (w) => isSameWeekday(w.date, date)
             );
             return {
                 date,

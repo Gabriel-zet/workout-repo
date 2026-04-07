@@ -6,12 +6,14 @@ interface User {
     id: number;
     email: string;
     name: string;
+    createdAt?: string;
 }
 
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
     isSignedIn: boolean;
+    createdAt: Date | null;
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (name: string, email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
@@ -110,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 user,
                 isLoading,
                 isSignedIn: user !== null,
+                createdAt: user?.createdAt ? new Date(user.createdAt) : null,
                 signIn,
                 signUp,
                 signOut,

@@ -16,29 +16,115 @@ import {
     WorkoutExercise,
     Set as WorkoutSet,
 } from '@/hooks/useWorkouts';
-import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { SetManager } from '@/components/ui/forms/SetManager';
-import { parseStoredDate } from '@/utils/date';
 import { apiClient } from '@/services/api';
 import {
     getNextSetOrder,
     normalizeWorkoutExercisesFromApi,
 } from '@/utils/workout-exercise';
 
+type SetPerformanceStatus = 'pending' | 'equal' | 'improved' | 'decreased';
+
+type SetWithPerformance = WorkoutSet & {
+    performanceStatus?: SetPerformanceStatus;
+};
+
+type ExerciseWithPerformance = Omit<WorkoutExercise, 'sets'> & {
+    sets: SetWithPerformance[];
+};
+
+/**
+ * Compara o resultado executado com a meta/referência da série.
+ *
+ * Regra adotada:
+ * - Melhorou: fez mais peso OU mais repetições
+ * - Piorou: fez menos peso OU menos repetições
+ * - Igual: mesmo peso e mesmas repetições
+ *
+ * Caso você queira uma regra mais rígida depois
+ * (ex.: só melhora se ambos aumentarem), dá para trocar aqui.
+ */
+function getSetPerformanceStatus(params: {
+    plannedWeight?: number | null;
+    plannedReps?: number | null;
+    actualWeight?: number | null;
+    actualReps?: number | null;
+    completed?: boolean;
+}): SetPerformanceStatus {
+    const plannedWeight = params.plannedWeight ?? 0;
+    const plannedReps = params.plannedReps ?? 0;
+    const actualWeight = params.actualWeight ?? 0;
+    const actualReps = params.actualReps ?? 0;
+    const completed = params.completed ?? false;
+
+    if (!completed) {
+        return 'pending';
+    }
+
+    const sameWeight = actualWeight === plannedWeight;
+    const sameReps = actualReps === plannedReps;
+
+    if (sameWeight && sameReps) {
+        return 'equal';
+    }
+
+    if (actualWeight > plannedWeight || actualReps > plannedReps) {
+        return 'improved';
+    }
+
+    if (actualWeight < plannedWeight || actualReps < plannedReps) {
+        return 'decreased';
+    }
+
+    return 'equal';
+}
+
+/**
+ * Enriquecemos os sets com um status visual de performance.
+ * Isso deixa a tela pronta para pintar cada linha no SetManager.
+ */
+function mapExercisesWithPerformance(
+    workoutExercises: WorkoutExercise[]
+): ExerciseWithPerformance[] {
+    return workoutExercises.map((exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((set) => ({
+            ...set,
+            performanceStatus: getSetPerformanceStatus({
+                plannedWeight: set.weight,
+                plannedReps: set.reps,
+                actualWeight: set.weight,
+                actualReps: set.reps,
+                completed: Boolean(set.completed),
+            }),
+        })),
+    }));
+}
+
 export default function WorkoutDetailScreen() {
     const router = useRouter();
     const headerHeight = useHeaderHeight();
     const { id } = useLocalSearchParams();
     const workoutId = id as string;
+
     const { workout, loading } = useWorkoutById(workoutId);
     const { deleteWorkout } = useWorkouts();
 
-    const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
+    const [exercises, setExercises] = useState<ExerciseWithPerformance[]>([]);
 
+    /**
+     * Sincroniza os exercícios vindos do hook principal
+     * com a estrutura usada na tela de execução.
+     */
     useEffect(() => {
-        setExercises(workout?.workoutExercises ?? []);
+        setExercises(mapExercisesWithPerformance(workout?.workoutExercises ?? []));
     }, [workout]);
 
+    /**
+     * Recarrega os exercícios no backend após alterações.
+     * Fazemos isso para manter a tela sempre alinhada ao dado persistido.
+     */
     const refreshExercises = useCallback(async () => {
         if (!workoutId) return;
 
@@ -52,7 +138,8 @@ export default function WorkoutDetailScreen() {
                 throw error;
             });
 
-        setExercises(normalizeWorkoutExercisesFromApi(workoutExercises));
+        const normalized = normalizeWorkoutExercisesFromApi(workoutExercises);
+        setExercises(mapExercisesWithPerformance(normalized));
     }, [workoutId]);
 
     const handleDelete = () => {
@@ -75,6 +162,14 @@ export default function WorkoutDetailScreen() {
         ]);
     };
 
+    /**
+     * Atualiza uma série concluída com os valores reais executados.
+     *
+     * A ideia da tela agora é:
+     * - usuário termina a série
+     * - ajusta peso/reps reais
+     * - a UI recalcula o status visual da performance
+     */
     const handleUpdateSet = async (
         exerciseId: string,
         setId: string,
@@ -84,27 +179,49 @@ export default function WorkoutDetailScreen() {
             order?: number;
             reps?: number | null;
             weight?: number | null;
+            completed?: boolean;
         } = {};
 
         if (updates.order !== undefined) payload.order = updates.order;
         if (updates.reps !== undefined) payload.reps = updates.reps;
         if (updates.weight !== undefined) payload.weight = updates.weight;
+        if (updates.completed !== undefined) payload.completed = updates.completed;
+
+        /**
+         * Atualização otimista local:
+         * isso ajuda o usuário a ver imediatamente a mudança de cor/ícone.
+         */
+        setExercises((currentExercises) =>
+            currentExercises.map((exercise) => {
+                if (exercise.id !== exerciseId) {
+                    return exercise;
+                }
+
+                return {
+                    ...exercise,
+                    sets: exercise.sets.map((set) => {
+                        if (set.id !== setId) {
+                            return set;
+                        }
+
+                        const nextSet = { ...set, ...updates };
+
+                        return {
+                            ...nextSet,
+                            performanceStatus: getSetPerformanceStatus({
+                                plannedWeight: set.weight,
+                                plannedReps: set.reps,
+                                actualWeight: nextSet.weight,
+                                actualReps: nextSet.reps,
+                                completed: Boolean(nextSet.completed),
+                            }),
+                        };
+                    }),
+                };
+            })
+        );
 
         if (Object.keys(payload).length === 0) {
-            setExercises((currentExercises) =>
-                currentExercises.map((exercise) => {
-                    if (exercise.id !== exerciseId) {
-                        return exercise;
-                    }
-
-                    return {
-                        ...exercise,
-                        sets: exercise.sets.map((set) =>
-                            set.id === setId ? { ...set, ...updates } : set
-                        ),
-                    };
-                })
-            );
             return;
         }
 
@@ -114,6 +231,7 @@ export default function WorkoutDetailScreen() {
         } catch (error) {
             console.error('Update set failed:', error);
             Alert.alert('Ops!', 'Nao foi possivel atualizar a serie agora.');
+            await refreshExercises();
         }
     };
 
@@ -130,6 +248,7 @@ export default function WorkoutDetailScreen() {
                 reps,
                 weight,
             });
+
             await refreshExercises();
         } catch (error) {
             console.error('Create set failed:', error);
@@ -192,29 +311,6 @@ export default function WorkoutDetailScreen() {
         );
     }
 
-    const workoutDate = parseStoredDate(workout.date);
-    const formattedDate = workoutDate.toLocaleDateString('pt-BR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
-
-    const totalSets = exercises.reduce((acc, exercise) => acc + exercise.sets.length, 0);
-    const completedSets = exercises.reduce(
-        (acc, exercise) => acc + exercise.sets.filter((set) => set.completed).length,
-        0
-    );
-    const totalVolume = exercises.reduce((acc, exercise) => {
-        return (
-            acc +
-            exercise.sets.reduce((setAcc, set) => {
-                return setAcc + set.weight * set.reps;
-            }, 0)
-        );
-    }, 0);
-    const completionRate = totalSets === 0 ? 0 : Math.round((completedSets / totalSets) * 100);
-
     return (
         <SafeAreaView className="flex-1 bg-[#09090b]">
             <ScrollView
@@ -229,12 +325,10 @@ export default function WorkoutDetailScreen() {
                 <View className="mb-8">
                     <View className="flex-row items-start justify-between">
                         <View className="flex-1 pr-4">
-                            <Text className="text-zinc-500 font-firs-regular text-lg">
-                                {formattedDate}
-                            </Text>
                             <Text className="text-white text-4xl font-firs-bold p-0 mt-2">
                                 {workout.title}
                             </Text>
+
                             {workout.notes && (
                                 <Text className="text-zinc-500 font-firs-regular text-lg mt-2">
                                     {workout.notes}
@@ -254,6 +348,7 @@ export default function WorkoutDetailScreen() {
                             >
                                 <Feather name="edit-2" size={18} color="#FFFFFF" />
                             </TouchableOpacity>
+
                             <TouchableOpacity
                                 onPress={handleDelete}
                                 className="w-11 h-11 bg-red-500/10 rounded-full items-center justify-center"
@@ -264,134 +359,73 @@ export default function WorkoutDetailScreen() {
                     </View>
                 </View>
 
-                <View className="flex-row gap-3 mb-8">
-                    <View className="flex-1 bg-[#121212] rounded-[24px] p-4">
-                        <Text className="text-zinc-500 font-firs-regular text-sm mb-2">
-                            Total de Series
-                        </Text>
-                        <Text className="text-white text-2xl font-firs-bold">
-                            {totalSets}
-                        </Text>
-                    </View>
-                    <View className="flex-1 bg-[#121212] rounded-[24px] p-4">
-                        <Text className="text-zinc-500 font-firs-regular text-sm mb-2">
-                            Conclusao
-                        </Text>
-                        <Text className="text-green-500 text-2xl font-firs-bold">
-                            {completionRate}%
-                        </Text>
-                    </View>
-                    <View className="flex-1 bg-[#121212] rounded-[24px] p-4">
-                        <Text className="text-zinc-500 font-firs-regular text-sm mb-2">
-                            Volume Total
-                        </Text>
-                        <Text className="text-orange-500 text-2xl font-firs-bold">
-                            {totalVolume}kg
-                        </Text>
-                    </View>
-                </View>
-
                 <View className="flex-1">
-                    <Text className="text-white font-firs-bold text-lg tracking-tight mb-4">
-                        Exercicios ({exercises.length})
-                    </Text>
+                    {exercises.map((workoutExercise) => (
+                        <View
+                            key={workoutExercise.id}
+                            className="bg-[#121212] rounded-[32px] mb-4 overflow-hidden p-6"
+                        >
+                            <View className="flex-row justify-between items-start mb-6">
+                                <View className="flex-1 pr-4">
+                                    <Text className="text-zinc-400 font-firs-regular text-base mb-1">
+                                        {workoutExercise.exercise.targetMuscle || 'Exercicio'}
+                                    </Text>
 
-                    {exercises.map((workoutExercise) => {
-                        const exerciseVolume = workoutExercise.sets.reduce(
-                            (acc, set) => acc + set.weight * set.reps,
-                            0
-                        );
+                                    <Text className="text-white font-firs-medium text-xl leading-tight mb-2">
+                                        {workoutExercise.exercise.name}
+                                    </Text>
 
-                        return (
-                            <View
-                                key={workoutExercise.id}
-                                className="bg-[#121212] rounded-[32px] mb-4 overflow-hidden p-6"
-                            >
-                                <View className="flex-row justify-between items-start mb-6">
-                                    <View className="flex-1 pr-4">
-                                        <Text className="text-zinc-400 font-firs-regular text-base mb-1">
-                                            {workoutExercise.exercise.targetMuscle || 'Exercicio'}
+                                    <Text className="text-zinc-600 font-firs-regular text-sm">
+                                        {workoutExercise.sets.length} serie
+                                        {workoutExercise.sets.length === 1 ? '' : 's'}
+                                    </Text>
+
+                                    {workoutExercise.notes ? (
+                                        <Text className="text-zinc-500 font-firs-regular text-sm mt-2">
+                                            {workoutExercise.notes}
                                         </Text>
-
-                                        <Text className="text-white font-firs-medium text-xl leading-tight mb-2">
-                                            {workoutExercise.exercise.name}
-                                        </Text>
-
-                                        <Text className="text-zinc-600 font-firs-regular text-sm">
-                                            {workoutExercise.sets.length} serie
-                                            {workoutExercise.sets.length === 1 ? '' : 's'}
-                                        </Text>
-
-                                        {workoutExercise.notes ? (
-                                            <Text className="text-zinc-500 font-firs-regular text-sm mt-2">
-                                                {workoutExercise.notes}
-                                            </Text>
-                                        ) : null}
-                                    </View>
-
-                                    <View className="w-12 h-12 bg-white/10 rounded-full items-center justify-center">
-                                        <Text className="text-white font-firs-bold text-base">
-                                            {workoutExercise.order ?? 0}
-                                        </Text>
-                                    </View>
+                                    ) : null}
                                 </View>
 
-                                <SetManager
-                                    sets={workoutExercise.sets}
-                                    onAddSet={(reps, weight) => {
-                                        handleAddSet(workoutExercise.id, reps, weight).catch(
-                                            () => undefined
-                                        );
-                                    }}
-                                    onUpdateSet={(setId, updates) => {
-                                        handleUpdateSet(
-                                            workoutExercise.id,
-                                            setId,
-                                            updates
-                                        ).catch(() => undefined);
-                                    }}
-                                    onRemoveSet={(setId) => {
-                                        handleRemoveSet(workoutExercise.id, setId).catch(
-                                            () => undefined
-                                        );
-                                    }}
-                                />
-
-                                <View className="mt-6 pt-5 border-t border-zinc-800/80 flex-row items-center justify-between">
-                                    <View>
-                                        <Text className="text-zinc-500 font-firs-regular text-sm mb-1">
-                                            Volume do exercicio
-                                        </Text>
-                                        <Text className="text-orange-500 font-firs-bold text-base">
-                                            {exerciseVolume.toFixed(0)}kg
-                                        </Text>
-                                    </View>
-                                    <View className="flex-row items-center">
-                                        <MaterialCommunityIcons
-                                            name="check-circle"
-                                            size={16}
-                                            color="#10b981"
-                                        />
-                                        <Text className="text-zinc-500 font-firs-regular text-sm ml-2">
-                                            {workoutExercise.sets.filter((set) => set.completed).length}
-                                            /{workoutExercise.sets.length} concluidas
-                                        </Text>
-                                    </View>
+                                <View className="w-12 h-12 bg-white/10 rounded-full items-center justify-center">
+                                    <Text className="text-white font-firs-bold text-base">
+                                        {workoutExercise.order ?? 0}
+                                    </Text>
                                 </View>
                             </View>
-                        );
-                    })}
 
-                    <View className="bg-[#121212] rounded-[32px] p-6 mt-2">
-                        <Text className="text-white font-firs-bold text-lg mb-2">
-                            Resumo do Treino
-                        </Text>
-                        <Text className="text-zinc-500 font-firs-regular text-base">
-                            {exercises.length} exercicio
-                            {exercises.length === 1 ? '' : 's'} registrados com {totalSets}{' '}
-                            series no total.
-                        </Text>
-                    </View>
+                            <SetManager
+                                sets={workoutExercise.sets}
+                                /**
+                                 * O SetManager agora pode usar:
+                                 * - set.completed
+                                 * - set.performanceStatus
+                                 *
+                                 * Para definir:
+                                 * - cor da linha
+                                 * - ícone de sucesso / igual / queda
+                                 * - comportamento ao finalizar a série
+                                 */
+                                onAddSet={(reps, weight) => {
+                                    handleAddSet(workoutExercise.id, reps, weight).catch(
+                                        () => undefined
+                                    );
+                                }}
+                                onUpdateSet={(setId, updates) => {
+                                    handleUpdateSet(
+                                        workoutExercise.id,
+                                        setId,
+                                        updates
+                                    ).catch(() => undefined);
+                                }}
+                                onRemoveSet={(setId) => {
+                                    handleRemoveSet(workoutExercise.id, setId).catch(
+                                        () => undefined
+                                    );
+                                }}
+                            />
+                        </View>
+                    ))}
                 </View>
             </ScrollView>
         </SafeAreaView>

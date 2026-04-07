@@ -24,6 +24,7 @@ import { ExerciseSelector } from '@/components/ui/modals/ExerciseSelector';
 import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
 import { SetManager } from '@/components/ui/forms/SetManager';
 import { apiClient } from '@/services/api';
+import { alignDateToCurrentWeek } from '@/utils/date';
 import {
     normalizeWorkoutExerciseFromApi,
     normalizeWorkoutSetFromApi,
@@ -66,6 +67,9 @@ export default function CreateWorkoutScreen() {
     useEffect(() => {
         if (!isEditing) {
             clearAllExercises();
+            setTitle('');
+            setNotes('');
+            setSelectedDate(new Date());
             return;
         }
 
@@ -73,7 +77,7 @@ export default function CreateWorkoutScreen() {
 
         setTitle(workout.title);
         setNotes(workout.notes ?? '');
-        setSelectedDate(new Date(workout.date));
+        setSelectedDate(alignDateToCurrentWeek(workout.date));
         replaceExercises(workout.workoutExercises ?? []);
     }, [clearAllExercises, isEditing, replaceExercises, workout]);
 
@@ -163,9 +167,7 @@ export default function CreateWorkoutScreen() {
                         weight: set.weight,
                     });
 
-                    createdSets.push(
-                        normalizeWorkoutSetFromApi(createdSet, setIndex + 1)
-                    );
+                    createdSets.push(normalizeWorkoutSetFromApi(createdSet, setIndex + 1));
                 }
 
                 persistedExercises.push(
@@ -227,7 +229,16 @@ export default function CreateWorkoutScreen() {
         } finally {
             setLoading(false);
         }
-    }, [exercises.length, isEditing, notes, router, selectedDate, syncWorkoutExercises, title, workoutId]);
+    }, [
+        exercises.length,
+        isEditing,
+        notes,
+        router,
+        selectedDate,
+        syncWorkoutExercises,
+        title,
+        workoutId,
+    ]);
 
     if (isEditing && workoutLoading && !workout) {
         return (
@@ -386,7 +397,11 @@ export default function CreateWorkoutScreen() {
                                 onPress={handleOpenExerciseCatalog}
                                 className="bg-zinc-900 rounded-[24px] py-4 px-5 flex-row items-center justify-center"
                             >
-                                <MaterialCommunityIcons name="playlist-plus" size={20} color="#FF6B00" />
+                                <MaterialCommunityIcons
+                                    name="playlist-plus"
+                                    size={20}
+                                    color="#FF6B00"
+                                />
                                 <Text className="text-white font-firs-medium text-base ml-2">
                                     Gerenciar Catalogo de Exercicios
                                 </Text>

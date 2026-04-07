@@ -140,10 +140,15 @@ class ApiClient {
         return this.request('POST', '/user/register', { name, email, password });
     }
 
-    async getMe(): Promise<{ id: number; email: string; name: string }> {
+    async getMe(): Promise<{ id: number; email: string; name: string; createdAt?: string }> {
         console.log('API: Calling getMe');
         try {
-            const result = await this.request<{ id: number; email: string; name: string }>(
+            const result = await this.request<{
+                id: number;
+                email: string;
+                name: string;
+                createdAt?: string;
+            }>(
                 'GET',
                 '/me',
                 undefined,

@@ -16,7 +16,7 @@ import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
 import NavigationHud from '@/components/ui/navgation/NavgationHud';
 import WeeklyPRCard from '@/components/ui/cards/WeeklyPRCard';
 import { useWorkouts } from '@/hooks/useWorkouts';
-import { isSameCalendarDay } from '@/utils/date';
+import { isSameWeekday } from '@/utils/date';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
@@ -31,7 +31,7 @@ export default function HomeScreen() {
   }, [refetch]);
 
   const workoutForDate = workouts.find((w) => {
-    return isSameCalendarDay(w.date, selectedDate);
+    return isSameWeekday(w.date, selectedDate);
   });
 
   const numColumns = 2;
@@ -42,7 +42,7 @@ export default function HomeScreen() {
     { id: '1', component: StreakCard },
     { id: '2', component: ScalesCard },
     { id: '3', component: WaterCard },
-    { id: '4', component: WorkoutCard, data: workoutForDate },
+    { id: '4', component: WorkoutCard, data: workoutForDate, selectedDate },
   ];
 
   return (
@@ -96,7 +96,7 @@ export default function HomeScreen() {
                       marginBottom: gap,
                     }}
                   >
-                    <Card data={item.data} />
+                    <Card data={item.data} selectedDate={item.selectedDate} />
                   </View>
                 );
               })}
