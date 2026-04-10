@@ -1,6 +1,28 @@
 services:
+  # Questões relacionadas ao banco de dados abaixo
+  db:
+    image: postgres:16-alpine
+    container_name: grav_db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - grav-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Questões relacionadas a API abaixo
   api:
     build: .
+    container_name: grav_api
     ports:
       - "3000:3000"
     env_file:
@@ -8,4 +30,17 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: npm run dev
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - grav-network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  grav-network:
+    driver: bridge
