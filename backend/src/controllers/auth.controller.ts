@@ -33,13 +33,12 @@ export const authController = {
         ...tokens,
       });
     } catch (error: any) {
-      console.error("❌ Register Error:", error);
-      console.error("❌ Error Message:", error.message);
-      console.error("❌ Error Code:", error.code);
 
-      if (error.message?.includes("unique")) {
-        return res.status(409).json({ message: "Email already registered" });
-      }
+    if (error.code === 'P2002') {
+        return res.status(409).json({ 
+        message: "Email already registered" 
+      });
+    }
       // 
       return res.status(500).json({ 
         message: "Error creating user",
