@@ -21,6 +21,8 @@ import { globalLimiter } from "./middlewares/rateLimiter.js";
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(helmet());
 // cors deve ser restritivo antes de ir para produção /// -- => por enquanto vou manter assim por facilidade de desenvolvimento, mas depois tem que ser mais restritivo
 app.use(cors());
