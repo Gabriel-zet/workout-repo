@@ -9,7 +9,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc && npx prisma migrate deploy",
     "start": "node dist/server.js"
   },
   "dependencies": {
