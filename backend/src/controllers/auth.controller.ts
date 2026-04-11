@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { usersService } from "../services/users.service";
+import { usersService } from "../services/users.service.js";
 
 // Zod já é utilizado no middleware de validação. 
 

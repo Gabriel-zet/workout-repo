@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { createWorkoutSchema, updateWorkoutSchema } from "../schemas/workout.schema.js";
-import { workoutsService } from "../services/workouts.service";
+import { workoutsService } from "../services/workouts.service.js";
 
 
 

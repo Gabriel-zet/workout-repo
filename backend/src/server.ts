@@ -4,17 +4,17 @@ import helmet from "helmet";
 import "dotenv/config";
 
 // rotas
-import { workoutsRoutes } from "./routes/workouts.routes";
-import { usersRoutes } from "./routes/users.routes";
-import { authRoutes } from "./routes/auth.routes";
-import { meRoutes } from "./routes/me.routes";
-import { exercisesRoutes } from "./routes/exercises.routes";
-import { workoutsExercisesRoutes } from "./routes/workoutsExercises.routes";
-import { setsRoutes } from "./routes/sets.routes";
+import { workoutsRoutes } from "./routes/workouts.routes.js";
+import { usersRoutes } from "./routes/users.routes.js";
+import { authRoutes } from "./routes/auth.routes.js";
+import { meRoutes } from "./routes/me.routes.js";
+import { exercisesRoutes } from "./routes/exercises.routes.js";
+import { workoutsExercisesRoutes } from "./routes/workoutsExercises.routes.js";
+import { setsRoutes } from "./routes/sets.routes.js";
 
 // middlewares
-import { errorHandler } from "./middlewares/errorHandler";
-import { globalLimiter } from "./middlewares/rateLimiter";
+import { errorHandler } from "./middlewares/errorHandler.js";
+import { globalLimiter } from "./middlewares/rateLimiter.js";
 
 
 

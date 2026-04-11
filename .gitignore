@@ -7,3 +7,5 @@ backend/.env
 # Build output
 /backend/dist/
 /backend/build/
+
+CHANGES_SUMMARY.md

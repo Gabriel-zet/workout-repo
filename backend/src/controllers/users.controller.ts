@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { createUserSchema } from "../schemas/users.schema.js";
-import { usersService } from "../services/users.service";   
+import { usersService } from "../services/users.service.js";
 
 
 

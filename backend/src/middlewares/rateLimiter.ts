@@ -1,4 +1,5 @@
 import rateLimit from "express-rate-limit";
+// No local imports here
 
 // Rate limiter GLOBAL - padrão para toda a API
 export const globalLimiter = rateLimit({

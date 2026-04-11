@@ -1,5 +1,5 @@
-import { workoutsRepository } from "../repositories/workouts.repo";
-import type { CreateWorkoutInput } from "../repositories/CreateWorkoutInput";
+import { workoutsRepository } from "../repositories/workouts.repo.js";
+import type { CreateWorkoutInput } from "../repositories/CreateWorkoutInput.js";
 
  // Camada de serviço para workouts Faltam validações mais complexas?  Lembrar de ADC
 export const workoutsService = {

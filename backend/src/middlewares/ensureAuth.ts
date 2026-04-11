@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
 import type { Secret, JwtPayload } from "jsonwebtoken";
+// No local imports here
 
 const JWT_SECRET_ENV = process.env.JWT_SECRET;
 if (!JWT_SECRET_ENV) throw new Error("Missing JWT_SECRET env var");

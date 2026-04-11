@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { workoutsController } from "../controllers/workouts.controller";
-import { validateIdParam } from "../middlewares/validateIdParam";
-import { ensureAuth } from "../middlewares/ensureAuth";
+import { workoutsController } from "../controllers/workouts.controller.js";
+import { validateIdParam } from "../middlewares/validateIdParam.js";
+import { ensureAuth } from "../middlewares/ensureAuth.js";
 
 
 export const workoutsRoutes = Router();

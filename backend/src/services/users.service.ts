@@ -1,5 +1,5 @@
-import { userRepo } from "../repositories/users.repo";
-import type { CreateUserInput } from "../repositories/CreateUserInput";
+import { userRepo } from "../repositories/users.repo.js";
+import type { CreateUserInput } from "../repositories/CreateUserInput.js";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import type { Secret, SignOptions } from "jsonwebtoken";
