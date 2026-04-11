@@ -14,6 +14,7 @@ RUN npm install
 # Copia o restante dos arquivos do projeto para o diretório de trabalho
 COPY . .
 
+RUN npm run build
 
 # Define a variável de ambiente para a porta
 ENV PORT=3000
