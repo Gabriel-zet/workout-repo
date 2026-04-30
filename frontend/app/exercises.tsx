@@ -9,11 +9,13 @@ import {
     Alert,
     RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useExercises } from '@/hooks/useExercises';
+import theme from '@/constants/theme';
 
 export default function ExercisesScreen() {
+    const insets = useSafeAreaInsets();
     const { exercises, loading, error, refetch, createExercise, deleteExercise } =
         useExercises();
     const [name, setName] = useState('');
@@ -72,7 +74,7 @@ export default function ExercisesScreen() {
                                 Alert.alert(
                                     'Nao foi possivel remover',
                                     err.message ||
-                                        'Esse exercicio pode estar em uso em algum treino.'
+                                    'Esse exercicio pode estar em uso em algum treino.'
                                 );
                             }
                         },
@@ -84,25 +86,25 @@ export default function ExercisesScreen() {
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-[#09090b]">
-            <View className="px-6 pt-8 pb-6">
-                <Text className="text-white text-4xl font-firs-black mb-2">
+        <SafeAreaView className="flex-1 bg-canvas" edges={['left', 'right', 'bottom']}>
+            <View className="px-6 pb-6" style={{ paddingTop: insets.top + 16 }}>
+                <Text className="text-foreground text-4xl font-firs-black mb-2">
                     Exercicios
                 </Text>
-                <Text className="text-zinc-400 text-base font-firs-regular">
+                <Text className="text-foreground-muted text-base font-firs-regular">
                     Crie seu catalogo pessoal para montar treinos mais rapido.
                 </Text>
             </View>
 
             <View className="px-6 mb-6">
-                <View className="bg-[#121212] rounded-[28px] p-5 border border-zinc-800">
-                    <Text className="text-white font-firs-bold text-lg mb-4">
+                <View className="bg-surface rounded-[28px] p-5 border border-outline-subtle">
+                    <Text className="text-foreground font-firs-bold text-lg mb-4">
                         Novo exercicio
                     </Text>
                     <TextInput
-                        className="bg-zinc-900 text-white rounded-2xl px-4 py-4 font-firs-regular"
+                        className="bg-surface-muted text-foreground rounded-2xl px-4 py-4 font-firs-regular"
                         placeholder="Ex.: Supino Inclinado"
-                        placeholderTextColor="#71717a"
+                        placeholderTextColor={theme.colors.textSubtle}
                         value={name}
                         onChangeText={setName}
                         maxLength={80}
@@ -113,16 +115,19 @@ export default function ExercisesScreen() {
                             handleCreateExercise().catch(() => undefined);
                         }}
                         disabled={submitting}
-                        className={`mt-4 rounded-2xl py-4 flex-row items-center justify-center ${
-                            submitting ? 'bg-zinc-800' : 'bg-[#FF6B00]'
-                        }`}
+                        className={`mt-4 rounded-2xl py-4 flex-row items-center justify-center ${submitting ? 'bg-surface-muted' : 'bg-white'
+                            }`}
                     >
                         {submitting ? (
-                            <ActivityIndicator size="small" color="#09090b" />
+                            <ActivityIndicator size="small" color={theme.colors.textInverse} />
                         ) : (
                             <>
-                                <MaterialCommunityIcons name="plus" size={20} color="#09090b" />
-                                <Text className="text-[#09090b] font-firs-bold ml-2">
+                                <MaterialCommunityIcons
+                                    name="plus"
+                                    size={20}
+                                    color={theme.colors.textInverse}
+                                />
+                                <Text className="text-foreground-inverse font-firs-bold ml-2">
                                     Salvar exercicio
                                 </Text>
                             </>
@@ -133,8 +138,8 @@ export default function ExercisesScreen() {
 
             <View className="px-6 mb-4 flex-row items-center justify-between">
                 <View>
-                    <Text className="text-white font-firs-bold text-xl">Catalogo</Text>
-                    <Text className="text-zinc-500 font-firs-regular text-sm">
+                    <Text className="text-foreground font-firs-bold text-xl">Catalogo</Text>
+                    <Text className="text-foreground-muted font-firs-regular text-sm">
                         {exerciseCountLabel}
                     </Text>
                 </View>
@@ -142,16 +147,20 @@ export default function ExercisesScreen() {
                     onPress={() => {
                         handleRefresh().catch(() => undefined);
                     }}
-                    className="w-11 h-11 rounded-full bg-zinc-900 items-center justify-center"
+                    className="w-11 h-11 rounded-full bg-surface-elevated border border-outline-subtle items-center justify-center"
                 >
-                    <MaterialCommunityIcons name="refresh" size={20} color="#FF6B00" />
+                    <MaterialCommunityIcons
+                        name="refresh"
+                        size={20}
+                        color={theme.colors.surfaceContrast}
+                    />
                 </TouchableOpacity>
             </View>
 
             {loading && exercises.length === 0 ? (
                 <View className="flex-1 justify-center items-center">
-                    <ActivityIndicator size="large" color="#FF6B00" />
-                    <Text className="text-zinc-400 font-firs-regular mt-4">
+                    <ActivityIndicator size="large" color={theme.colors.surfaceContrast} />
+                    <Text className="text-foreground-muted font-firs-regular mt-4">
                         Carregando exercicios...
                     </Text>
                 </View>
@@ -164,41 +173,41 @@ export default function ExercisesScreen() {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={handleRefresh}
-                            tintColor="#FF6B00"
+                            tintColor={theme.colors.brand}
                         />
                     }
                     ListEmptyComponent={
-                        <View className="bg-[#121212] rounded-[28px] p-8 items-center mt-2">
-                            <View className="w-14 h-14 rounded-full bg-zinc-900 items-center justify-center mb-4">
+                        <View className="bg-surface rounded-[28px] border border-outline-subtle p-8 items-center mt-2">
+                            <View className="w-14 h-14 rounded-full bg-surface-muted items-center justify-center mb-4">
                                 <MaterialCommunityIcons
                                     name="dumbbell"
                                     size={24}
-                                    color="#FF6B00"
+                                    color={theme.colors.brand}
                                 />
                             </View>
-                            <Text className="text-white font-firs-bold text-lg text-center">
+                            <Text className="text-foreground font-firs-bold text-lg text-center">
                                 Nenhum exercicio cadastrado
                             </Text>
-                            <Text className="text-zinc-500 font-firs-regular text-sm text-center mt-2">
+                            <Text className="text-foreground-muted font-firs-regular text-sm text-center mt-2">
                                 Crie o primeiro exercicio para ele aparecer no seletor do treino.
                             </Text>
                         </View>
                     }
                     renderItem={({ item }) => (
-                        <View className="bg-[#121212] rounded-[24px] p-5 mb-3 flex-row items-center justify-between">
+                        <View className="bg-surface rounded-[24px] border border-outline-subtle p-5 mb-3 flex-row items-center justify-between">
                             <View className="flex-row items-center flex-1 pr-4">
-                                <View className="w-12 h-12 rounded-full bg-zinc-900 items-center justify-center mr-4">
+                                <View className="w-12 h-12 rounded-full bg-surface-muted items-center justify-center mr-4">
                                     <MaterialCommunityIcons
                                         name="dumbbell"
                                         size={20}
-                                        color="#FF6B00"
+                                        color={theme.colors.brand}
                                     />
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="text-white font-firs-bold text-base">
+                                    <Text className="text-foreground font-firs-bold text-base">
                                         {item.name}
                                     </Text>
-                                    <Text className="text-zinc-500 font-firs-regular text-sm mt-1">
+                                    <Text className="text-foreground-muted font-firs-regular text-sm mt-1">
                                         Disponivel para adicionar aos treinos
                                     </Text>
                                 </View>
@@ -206,12 +215,12 @@ export default function ExercisesScreen() {
 
                             <TouchableOpacity
                                 onPress={() => handleDeleteExercise(item.id, item.name)}
-                                className="w-11 h-11 rounded-full bg-red-500/10 items-center justify-center"
+                                className="w-11 h-11 rounded-full bg-danger-soft items-center justify-center"
                             >
                                 <MaterialCommunityIcons
                                     name="trash-can-outline"
                                     size={20}
-                                    color="#f87171"
+                                    color={theme.colors.danger}
                                 />
                             </TouchableOpacity>
                         </View>
@@ -228,3 +237,4 @@ export default function ExercisesScreen() {
         </SafeAreaView>
     );
 }
+

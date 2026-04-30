@@ -37,13 +37,18 @@ export default function RegisterScreen() {
             return;
         }
 
-        if (password.length < 6) {
-            setError('A senha deve ter no mínimo 6 caracteres');
+        if (password.length < 8) {
+            setError('A senha deve ter no mínimo 8 caracteres');
+            return;
+        }
+
+        if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+            setError('A senha precisa ter maiúscula, minúscula e número');
             return;
         }
 
         try {
-            await signUp(name, email, password);
+            await signUp(name, email, password, confirmPassword);
             // Navegação é automática após signup no contexto
         } catch (err: any) {
             const errorMessage =
@@ -140,7 +145,7 @@ export default function RegisterScreen() {
                                 className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
                             />
                             <Text className="text-zinc-500 text-xs font-firs-regular mt-2">
-                                Mínimo 6 caracteres
+                                Mínimo 8 caracteres com maiúscula, minúscula e número
                             </Text>
                         </View>
 

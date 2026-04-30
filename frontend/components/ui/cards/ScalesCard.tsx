@@ -1,40 +1,32 @@
-import React from "react";
-import { View, Text } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
+import React from 'react';
+import { Text, View } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function WeightCard() {
-  // Configuração dos traços (ticks) da balança na parte inferior
   const totalTicks = 17;
   const middleIndex = Math.floor(totalTicks / 2);
 
   return (
-    <View
-      className="bg-[#111111] rounded-[36px] p-2 border-[15px] border-[#111111] w-full h-full flex flex-col items-center overflow-hidden relative">
-
-      {/* Data */}
-      <Text className="text-white text-xs font-firs-regular mt-2">
+    <View className="relative h-full w-full items-center overflow-hidden rounded-[36px] border-[15px] border-surface bg-surface p-2">
+      <Text className="mt-2 text-xs font-firs-regular text-foreground">
         Hoje, Março 12
       </Text>
 
-      {/* Peso Principal */}
       <Text
-        className="text-[#FF6B00] text-[60px] leading-[50px] font-firs-medium mt-3"
+        className="mt-3 text-[60px] font-firs-medium leading-[50px] text-brand-primary"
         style={{ textAlignVertical: 'center' }}
       >
         86.4
       </Text>
 
-      {/* Subtítulo da Meta */}
-      <View className="flex-row items-center mb-10 opacity-60 flex-1 justify-center">
-        {/* Ícone atualizado para FontAwesome5 */}
+      <View className="mb-10 flex-1 flex-row items-center justify-center opacity-60">
         <FontAwesome5 name="flag-checkered" size={10} color="#FFFFFF" />
-        <Text className="text-white text-xs font-firs-regular ml-1.5">
+        <Text className="ml-1.5 text-xs font-firs-regular text-foreground">
           16.4 kg até a meta
         </Text>
       </View>
 
-      {/* Gráfico do Mostrador em Arco */}
-      <View className="w-full h-[60px] absolute bottom-[-30px] items-center justify-end">
+      <View className="absolute bottom-[-30px] h-[60px] w-full items-center justify-end">
         {Array.from({ length: totalTicks }).map((_, index) => {
           const i = index - middleIndex;
           const isCenter = i === 0;
@@ -50,7 +42,9 @@ export default function WeightCard() {
               }}
             >
               <View
-                className={`rounded-full ${isCenter ? "bg-[#FF6B00]" : "bg-white"}`}
+                className={`rounded-full ${
+                  isCenter ? 'bg-brand-primary' : 'bg-surface-contrast'
+                }`}
                 style={{
                   width: isCenter ? 4 : 3,
                   height: isCenter ? 48 : 26 - Math.abs(i) * 1.2,
@@ -60,7 +54,6 @@ export default function WeightCard() {
           );
         })}
       </View>
-
     </View>
   );
 }

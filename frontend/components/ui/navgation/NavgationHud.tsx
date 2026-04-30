@@ -1,6 +1,9 @@
 import React from 'react';
-import { Text, View, Image, TouchableOpacity } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 
 type NavigationHudProps = {
     selectedDate: Date;
@@ -11,40 +14,47 @@ function getDayName(date: Date): string {
         weekday: 'long',
     });
 
-    // Capitalizar a primeira letra do dia da semana
     return day.charAt(0).toUpperCase() + day.slice(1);
 }
 
 export default function NavigationHud({ selectedDate }: NavigationHudProps) {
-    return (
-        <View className="px-5 pt-10 pb-4">
-            <View className="flex-row items-center justify-between">
+    const insets = useSafeAreaInsets();
+    const { photoUri } = useProfilePhoto();
 
-                {/* Botão Menu */}
-                <TouchableOpacity className="bg-[#1c1c1e] w-14 h-14 rounded-2xl items-center justify-center">
+    return (
+        <View className="px-5 pb-4" style={{ paddingTop: insets.top + 12 }}>
+            <View className="flex-row items-center justify-between">
+                <TouchableOpacity className="h-14 w-14 items-center justify-center rounded-2xl border border-outline-subtle bg-surface-muted">
                     <MaterialIcons name="drag-handle" size={32} color="white" />
                 </TouchableOpacity>
 
-                {/* Títulos Centrais */}
                 <View className="items-center">
-                    <Text className="text-white text-2xl font-firs-semibold tracking-tight">
+                    <Text className="text-foreground text-2xl font-firs-semibold tracking-tight">
                         {getDayName(selectedDate)}
                     </Text>
 
-                    <Text className="text-[#8e8e93] text-sm mt-1">
+                    <Text className="mt-1 text-sm font-firs-regular text-foreground-subtle">
                         Push - peso por lado
                     </Text>
                 </View>
 
-                {/* Avatar */}
                 <TouchableOpacity className="relative">
-                    <Image
-                        source={{ uri: 'https://i.pravatar.cc/150?u=neo' }}
-                        className="w-14 h-14 rounded-full bg-neutral-800"
-                    />
-                    <View className="absolute bottom-0 right-0 w-4 h-4 bg-[#ff6b00] rounded-full border-2 border-[#09090b]" />
+                    {photoUri ? (
+                        <Image
+                            source={{ uri: photoUri }}
+                            className="h-14 w-14 rounded-full bg-surface-muted"
+                        />
+                    ) : (
+                        <View className="h-14 w-14 items-center justify-center rounded-full bg-surface-muted">
+                            <MaterialIcons
+                                name="person"
+                                size={28}
+                                color="white"
+                            />
+                        </View>
+                    )}
+                    <View className="absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-canvas bg-brand-primary" />
                 </TouchableOpacity>
-
             </View>
         </View>
     );

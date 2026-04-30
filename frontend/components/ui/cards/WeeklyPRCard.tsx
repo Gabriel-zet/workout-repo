@@ -70,7 +70,7 @@ export default function WeeklyPRCard({ workouts = [] }: WeeklyPRCardProps) {
     }, [workouts]);
 
     return (
-        <View className="w-full bg-surface-elevated rounded-[32px] p-6 border border-zinc-800">
+        <View className="w-full rounded-[32px] border border-outline-subtle bg-surface-elevated p-6">
             {/* Header */}
             <View className="flex-row items-center mb-8">
                 <MaterialCommunityIcons name="history" size={15} color="#FFFFFF" />
@@ -99,7 +99,7 @@ export default function WeeklyPRCard({ workouts = [] }: WeeklyPRCardProps) {
                     </View>
 
                     <View className="absolute top-[50%] w-full flex-row items-center z-10">
-                        <View className="flex-1 border-t border-dashed border-brand-secondary opacity-50" />
+                        <View className="flex-1 border-t border-dashed border-brand-primary opacity-50" />
                         <View className="bg-brand-primary/20 rounded px-1 py-0.5 ml-3 w-10 items-center -mt-2">
                             <Text className="text-brand-primary font-firs-medium text-xs whitespace-nowrap">
                                 {weekStats.maxWeight}kg
@@ -144,7 +144,7 @@ export default function WeeklyPRCard({ workouts = [] }: WeeklyPRCardProps) {
                         </Text>
                         <View className="flex-row items-center">
                             <MaterialCommunityIcons name="arrow-up" size={12} color="#A6FF00" />
-                            <Text className="text-brand-success font-firs-medium text-sm">
+                            <Text className="text-success font-firs-medium text-sm">
                                 {weekStats.progressKg}kg
                             </Text>
                         </View>
@@ -161,7 +161,7 @@ export default function WeeklyPRCard({ workouts = [] }: WeeklyPRCardProps) {
                         </Text>
                         <View className="flex-row items-center">
                             <MaterialCommunityIcons name="arrow-up" size={12} color="#A6FF00" />
-                            <Text className="text-brand-success font-firs-medium text-sm">
+                            <Text className="text-success font-firs-medium text-sm">
                                 {weekStats.progressReps}
                             </Text>
                         </View>
@@ -178,7 +178,7 @@ export default function WeeklyPRCard({ workouts = [] }: WeeklyPRCardProps) {
                         </Text>
                         <View className="flex-row items-center">
                             <MaterialCommunityIcons name="arrow-up" size={12} color="#A6FF00" />
-                            <Text className="text-brand-success font-firs-medium text-sm">
+                            <Text className="text-success font-firs-medium text-sm">
                                 +{weekStats.workoutCount * 20} reps
                             </Text>
                         </View>

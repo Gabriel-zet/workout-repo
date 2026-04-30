@@ -16,6 +16,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Octicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import theme from '@/constants/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -118,7 +119,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                     <Octicons
                       name={isFocused ? config.activeIcon ?? config.icon : config.icon}
                       size={22}
-                      color={isFocused ? '#FFFFFF' : '#111111'}
+                      color={
+                        isFocused
+                          ? theme.colors.surfaceContrast
+                          : theme.colors.tabIcon
+                      }
                     />
 
                     {isFocused && (
@@ -136,7 +141,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               style={styles.tabPressable}
             >
               <View style={styles.tabItem}>
-                <Octicons name="kebab-horizontal" size={20} color="#111111" />
+                <Octicons
+                  name="kebab-horizontal"
+                  size={20}
+                  color={theme.colors.tabIcon}
+                />
               </View>
             </Pressable>
           </TabSurface>
@@ -146,7 +155,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             style={styles.createButtonPressable}
           >
             <View style={styles.createButton}>
-              <Octicons name="plus" size={24} color="#FFFFFF" />
+              <Octicons
+                name="plus"
+                size={24}
+                color={theme.colors.surfaceContrast}
+              />
             </View>
           </Pressable>
         </View>
@@ -164,7 +177,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                   ]}
                 >
                   <View style={styles.moreMenuIcon}>
-                    <Octicons name={item.icon} size={18} color="#111111" />
+                    <Octicons
+                      name={item.icon}
+                      size={18}
+                      color={theme.colors.tabIcon}
+                    />
                   </View>
                   <Text style={styles.moreMenuText}>{item.label}</Text>
                 </View>
@@ -179,7 +196,13 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: { backgroundColor: theme.colors.canvas },
+      }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+    >
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
       <Tabs.Screen name="statistics" options={{ title: 'Stats' }} />
       <Tabs.Screen name="explore" options={{ title: 'Perfil' }} />
@@ -201,7 +224,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   surface: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.tabSurface,
     borderRadius: 999,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 12 },
@@ -209,7 +232,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: theme.colors.outlineInverse,
   },
   tabBar: {
     height: 70,
@@ -235,12 +258,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tabItemActive: {
-    backgroundColor: '#111111',
+    backgroundColor: theme.colors.textInverse,
     gap: 6,
     paddingHorizontal: 14,
   },
   activeLabel: {
-    color: '#FFFFFF',
+    color: theme.colors.surfaceContrast,
     fontSize: 12,
     lineHeight: 14,
     fontFamily: 'TT-Firs-Regular',
@@ -258,7 +281,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
-    backgroundColor: '#FF7B00',
+    backgroundColor: theme.colors.brandStrong,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.18,
@@ -267,7 +290,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.16)',
+    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
     paddingBottom: 90,
@@ -275,7 +298,7 @@ const styles = StyleSheet.create({
   },
   moreMenuCard: {
     width: 220,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.tabSurface,
     borderRadius: 20,
     paddingVertical: 8,
     shadowColor: '#000000',
@@ -284,7 +307,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: theme.colors.outlineInverse,
   },
   moreMenuItem: {
     minHeight: 52,
@@ -302,7 +325,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   moreMenuText: {
-    color: '#111111',
+    color: theme.colors.textInverse,
     fontSize: 15,
     fontFamily: Platform.select({
       ios: 'System',
@@ -311,3 +334,4 @@ const styles = StyleSheet.create({
     }),
   },
 });
+

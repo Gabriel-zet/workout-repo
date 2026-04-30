@@ -1,16 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import {
-    View,
-    Text,
-    TouchableOpacity,
-    ScrollView,
-    TextInput,
-    Modal,
-    FlatList,
-    Platform,
     ActivityIndicator,
+    FlatList,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+import theme from '@/constants/theme';
 import type { Exercise } from '@/types/workout-exercise';
 
 interface ExerciseSelectorProps {
@@ -58,10 +60,10 @@ export function ExerciseSelector({
     const renderEmptyState = () => {
         if (loading) {
             return (
-                <View className="px-6 py-20 items-center">
-                    <ActivityIndicator size="large" color="#FF6B00" />
-                    <Text className="text-zinc-400 font-firs-regular mt-4">
-                        Carregando exercicios...
+                <View className="items-center px-6 py-20">
+                    <ActivityIndicator size="large" color={theme.colors.brand} />
+                    <Text className="mt-4 font-firs-regular text-foreground-muted">
+                        Carregando exercícios...
                     </Text>
                 </View>
             );
@@ -69,30 +71,38 @@ export function ExerciseSelector({
 
         const emptyMessage =
             exercises.length === 0
-                ? 'Nenhum exercicio cadastrado ainda.'
-                : 'Nenhum exercicio encontrado para esse filtro.';
+                ? 'Nenhum exercício cadastrado ainda.'
+                : 'Nenhum exercício encontrado para esse filtro.';
 
         return (
-            <View className="px-6 py-20 items-center">
-                <View className="w-16 h-16 rounded-full bg-[#161618] items-center justify-center mb-5">
-                    <MaterialCommunityIcons name="dumbbell" size={28} color="#FF6B00" />
+            <View className="items-center px-6 py-20">
+                <View className="mb-5 h-16 w-16 items-center justify-center rounded-full bg-surface-muted">
+                    <MaterialCommunityIcons
+                        name="dumbbell"
+                        size={28}
+                        color={theme.colors.brand}
+                    />
                 </View>
-                <Text className="text-white font-firs-bold text-lg text-center">
+                <Text className="text-center text-lg font-firs-bold text-foreground">
                     {emptyMessage}
                 </Text>
-                <Text className="text-zinc-400 font-firs-regular text-sm text-center mt-2">
+                <Text className="mt-2 text-center text-sm font-firs-regular text-foreground-muted">
                     {exercises.length === 0
-                        ? 'Crie alguns exercicios para montar seu treino.'
+                        ? 'Crie alguns exercícios para montar seu treino.'
                         : 'Tente buscar por outro nome ou limpar o filtro.'}
                 </Text>
                 {onManageExercises && (
                     <TouchableOpacity
                         onPress={onManageExercises}
-                        className="mt-6 bg-[#FF6B00] rounded-2xl px-5 py-3 flex-row items-center"
+                        className="mt-6 flex-row items-center rounded-2xl bg-brand-primary px-5 py-3"
                     >
-                        <MaterialCommunityIcons name="plus" size={18} color="#09090b" />
-                        <Text className="text-[#09090b] font-firs-bold ml-2">
-                            Gerenciar Exercicios
+                        <MaterialCommunityIcons
+                            name="plus"
+                            size={18}
+                            color={theme.colors.textInverse}
+                        />
+                        <Text className="ml-2 font-firs-bold text-foreground-inverse">
+                            Gerenciar exercícios
                         </Text>
                     </TouchableOpacity>
                 )}
@@ -107,37 +117,51 @@ export function ExerciseSelector({
             animationType="slide"
             onRequestClose={onClose}
         >
-            <View className="flex-1 bg-[#000000]">
-                <View className="flex-row items-center justify-between px-5 pt-6 pb-4">
-                    <Text className="text-white font-firs-bold text-2xl flex-1">
-                        Exercicios
+            <View className="flex-1 bg-canvas">
+                <View className="flex-row items-center justify-between px-5 pb-4 pt-6">
+                    <Text className="flex-1 text-2xl font-firs-bold text-foreground">
+                        Exercícios
                     </Text>
 
                     {onManageExercises && (
                         <TouchableOpacity
                             onPress={onManageExercises}
-                            className="mr-3 px-4 h-10 rounded-full bg-[#161618] flex-row items-center"
+                            className="mr-3 h-10 flex-row items-center rounded-full bg-surface-muted px-4"
                         >
-                            <MaterialCommunityIcons name="plus" size={18} color="#FF6B00" />
-                            <Text className="text-white font-firs-medium ml-2">Novo</Text>
+                            <MaterialCommunityIcons
+                                name="plus"
+                                size={18}
+                                color={theme.colors.brand}
+                            />
+                            <Text className="ml-2 font-firs-medium text-foreground">
+                                Novo
+                            </Text>
                         </TouchableOpacity>
                     )}
 
                     <TouchableOpacity
                         onPress={onClose}
-                        className="w-10 h-10 rounded-full bg-[#161618] items-center justify-center"
+                        className="h-10 w-10 items-center justify-center rounded-full bg-surface-muted"
                     >
-                        <MaterialCommunityIcons name="close" size={20} color="#8E8E93" />
+                        <MaterialCommunityIcons
+                            name="close"
+                            size={20}
+                            color={theme.colors.textSubtle}
+                        />
                     </TouchableOpacity>
                 </View>
 
                 <View className="px-5 pb-5">
-                    <View className="bg-[#161618] rounded-2xl flex-row items-center px-4 h-14">
-                        <MaterialCommunityIcons name="magnify" size={22} color="#8E8E93" />
+                    <View className="h-14 flex-row items-center rounded-2xl bg-surface-muted px-4">
+                        <MaterialCommunityIcons
+                            name="magnify"
+                            size={22}
+                            color={theme.colors.textSubtle}
+                        />
                         <TextInput
-                            className="flex-1 text-white ml-3 font-firs-regular text-base"
-                            placeholder="Buscar exercicio..."
-                            placeholderTextColor="#8E8E93"
+                            className="ml-3 flex-1 text-base font-firs-regular text-foreground"
+                            placeholder="Buscar exercício..."
+                            placeholderTextColor={theme.colors.textSubtle}
                             value={search}
                             onChangeText={setSearch}
                         />
@@ -145,52 +169,49 @@ export function ExerciseSelector({
                 </View>
 
                 {muscles.length > 0 && (
-                    <View>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            className="px-5 mb-5"
-                            contentContainerStyle={{ gap: 10, paddingRight: 40 }}
-                        >
-                            <TouchableOpacity
-                                className={`px-5 py-2.5 rounded-full ${
-                                    selectedMuscle === null ? 'bg-[#FF6B00]' : 'bg-[#161618]'
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        className="mb-5 px-5"
+                        contentContainerStyle={{ gap: 10, paddingRight: 40 }}
+                    >
+                        <TouchableOpacity
+                            className={`rounded-full px-5 py-2.5 ${selectedMuscle === null
+                                ? 'bg-brand-primary'
+                                : 'bg-surface-muted'
                                 }`}
-                                onPress={() => setSelectedMuscle(null)}
+                            onPress={() => setSelectedMuscle(null)}
+                        >
+                            <Text
+                                className={`text-sm font-firs-bold ${selectedMuscle === null
+                                    ? 'text-foreground-inverse'
+                                    : 'text-foreground-subtle'
+                                    }`}
+                            >
+                                Todos
+                            </Text>
+                        </TouchableOpacity>
+
+                        {muscles.map((muscle) => (
+                            <TouchableOpacity
+                                key={muscle}
+                                className={`rounded-full px-5 py-2.5 ${selectedMuscle === muscle
+                                    ? 'bg-brand-primary'
+                                    : 'bg-surface-muted'
+                                    }`}
+                                onPress={() => setSelectedMuscle(muscle)}
                             >
                                 <Text
-                                    className={`font-firs-bold text-sm ${
-                                        selectedMuscle === null
-                                            ? 'text-white'
-                                            : 'text-[#8E8E93]'
-                                    }`}
+                                    className={`text-sm font-firs-bold ${selectedMuscle === muscle
+                                        ? 'text-foreground-inverse'
+                                        : 'text-foreground-subtle'
+                                        }`}
                                 >
-                                    Todos
+                                    {muscle}
                                 </Text>
                             </TouchableOpacity>
-                            {muscles.map((muscle) => (
-                                <TouchableOpacity
-                                    key={muscle}
-                                    className={`px-5 py-2.5 rounded-full ${
-                                        selectedMuscle === muscle
-                                            ? 'bg-[#FF6B00]'
-                                            : 'bg-[#161618]'
-                                    }`}
-                                    onPress={() => setSelectedMuscle(muscle)}
-                                >
-                                    <Text
-                                        className={`font-firs-bold text-sm ${
-                                            selectedMuscle === muscle
-                                                ? 'text-white'
-                                                : 'text-[#8E8E93]'
-                                        }`}
-                                    >
-                                        {muscle}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
+                        ))}
+                    </ScrollView>
                 )}
 
                 <FlatList
@@ -205,7 +226,7 @@ export function ExerciseSelector({
                     ListEmptyComponent={renderEmptyState}
                     renderItem={({ item }) => (
                         <TouchableOpacity
-                            className="bg-[#161618] rounded-[20px] p-4 mb-3 flex-row items-center justify-between"
+                            className="mb-3 flex-row items-center justify-between p-4"
                             activeOpacity={0.7}
                             onPress={() => {
                                 onSelectExercise(item);
@@ -213,17 +234,17 @@ export function ExerciseSelector({
                             }}
                         >
                             <View className="flex-1 pr-4">
-                                <Text className="text-white font-firs-bold text-base mb-1.5">
+                                <Text className="mb-1.5 text-base font-firs-bold text-foreground">
                                     {item.name}
                                 </Text>
                                 <View className="flex-row items-center gap-3">
-                                    <Text className="text-[#8E8E93] font-firs-medium text-sm">
-                                        {item.targetMuscle || 'Catalogo pessoal'}
+                                    <Text className="text-sm font-firs-medium text-foreground-subtle">
+                                        {item.targetMuscle || 'Catálogo pessoal'}
                                     </Text>
                                     {item.equipment && (
                                         <>
-                                            <View className="w-1 h-1 rounded-full bg-[#48484A]" />
-                                            <Text className="text-[#8E8E93] font-firs-regular text-sm">
+                                            <View className="h-1 w-1 rounded-full bg-outline-strong" />
+                                            <Text className="text-sm font-firs-regular text-foreground-subtle">
                                                 {item.equipment}
                                             </Text>
                                         </>
@@ -231,11 +252,11 @@ export function ExerciseSelector({
                                 </View>
                             </View>
 
-                            <View className="w-10 h-10 rounded-full bg-[#252528] items-center justify-center">
+                            <View className="h-10 w-10 items-center justify-center rounded-full bg-surface-soft">
                                 <MaterialCommunityIcons
                                     name="plus"
                                     size={22}
-                                    color="#FF6B00"
+                                    color={theme.colors.brand}
                                 />
                             </View>
                         </TouchableOpacity>
@@ -245,3 +266,4 @@ export function ExerciseSelector({
         </Modal>
     );
 }
+

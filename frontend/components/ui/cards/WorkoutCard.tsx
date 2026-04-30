@@ -1,8 +1,9 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
+import React from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+
 import { formatWeekdayName, formatWeeklySchedule } from '@/utils/date';
 
 interface WorkoutData {
@@ -30,10 +31,9 @@ export default function WorkoutCard({ data, selectedDate }: WorkoutCardProps) {
     };
 
     return (
-        <View className="w-full h-full" style={{ aspectRatio: 1 }}>
-            <View className="bg-[#111111] rounded-[36px] p-5 overflow-hidden flex-1 flex">
-                {/* IMAGEM (Ramon Dino) */}
-                <View className="absolute right-[-60px] top-[20%] bottom-[-90px] w-[120px] overflow-hidden">
+        <View className="h-full w-full" style={{ aspectRatio: 1 }}>
+            <View className="flex-1 overflow-hidden rounded-[36px] border border-outline-subtle bg-surface p-5">
+                <View className="absolute bottom-[-90px] right-[-60px] top-[20%] w-[120px] overflow-hidden">
                     <Image
                         source={require('@/assets/images/human.png')}
                         style={{
@@ -46,45 +46,43 @@ export default function WorkoutCard({ data, selectedDate }: WorkoutCardProps) {
                     />
                 </View>
 
-                {/* CONTEUDO */}
                 <View className="flex-col">
-                    {/* Cabecalho */}
                     <View className="flex-row items-center">
                         <FontAwesome5 name="dumbbell" size={12} color="#FFFFFF" />
-                        <Text className="text-white text-sm font-firs-regular ml-2.5">
+                        <Text className="ml-2.5 text-sm font-firs-regular text-foreground">
                             {data ? 'Treino da semana' : 'Nenhum treino'}
                         </Text>
                     </View>
 
                     {data ? (
-                        <View className="gap-3 mt-2">
-                            <Text className="text-white text-lg font-firs-regular">
+                        <View className="mt-2 gap-3">
+                            <Text className="text-lg font-firs-regular text-foreground">
                                 {data.title}
                             </Text>
 
                             <View className="flex-row items-center">
                                 <Ionicons name="calendar-outline" size={12} color="#FFFFFF" />
-                                <Text className="text-white ml-1 text-sm font-firs-regular">
+                                <Text className="ml-1 text-sm font-firs-regular text-foreground">
                                     {formatWeeklySchedule(data.date)}
                                 </Text>
                             </View>
                             <TouchableOpacity
                                 onPress={handleViewWorkout}
-                                className="bg-[#2A2A2A] rounded-full px-6 py-2 self-start"
+                                className="self-start rounded-full bg-surface-muted px-6 py-2"
                             >
-                                <Text className="text-white text-sm font-firs-medium">
+                                <Text className="text-sm font-firs-medium text-foreground">
                                     Ver treino
                                 </Text>
                             </TouchableOpacity>
                         </View>
                     ) : (
-                        <View className="gap-3 mt-2">
-                            <Text className="text-zinc-500 text-base font-firs-regular">
+                        <View className="mt-2 gap-3">
+                            <Text className="text-base font-firs-regular text-foreground-muted">
                                 {selectedDate
                                     ? `Sem treino para ${formatWeekdayName(selectedDate)}`
                                     : 'Sem treino nesse dia'}
                             </Text>
-                            <Text className="text-zinc-600 text-sm font-firs-regular">
+                            <Text className="text-sm font-firs-regular text-foreground-subtle">
                                 Escolha outro dia da semana ou crie um treino
                             </Text>
                         </View>
