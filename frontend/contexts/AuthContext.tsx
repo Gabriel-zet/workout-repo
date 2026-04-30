@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { storage } from '../services/storage';
 import { apiClient } from '../services/api';
 
 interface User {
@@ -15,7 +14,12 @@ interface AuthContextType {
     isSignedIn: boolean;
     createdAt: Date | null;
     signIn: (email: string, password: string) => Promise<void>;
-    signUp: (name: string, email: string, password: string) => Promise<void>;
+    signUp: (
+        name: string,
+        email: string,
+        password: string,
+        confirmPassword: string
+    ) => Promise<void>;
     signOut: () => Promise<void>;
     checkAuth: () => Promise<void>;
 }
@@ -26,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Verificar autenticação ao carregar
     useEffect(() => {
         checkAuth();
     }, []);
@@ -35,11 +38,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             setIsLoading(true);
             console.log('Checking auth...');
-            const token = await storage.getItem('auth_token');
-            console.log('Token found:', !!token);
+            const [token, refreshToken] = await Promise.all([
+                apiClient.getToken(),
+                apiClient.getRefreshToken(),
+            ]);
+            console.log('Token found:', !!token || !!refreshToken);
 
-            if (token) {
-                // Verificar se token ainda é válido
+            if (token || refreshToken) {
                 console.log('Validating token...');
                 const meData = await apiClient.getMe();
                 console.log('User data:', meData);
@@ -51,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
             console.error('Auth check failed:', error);
             setUser(null);
-            await storage.removeItem('auth_token');
+            await apiClient.clearTokens();
         } finally {
             setIsLoading(false);
         }
@@ -62,10 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(true);
             const response = await apiClient.login(email, password);
 
-            // Salvar token
-            await apiClient.setToken(response.token);
+            await apiClient.setTokens(response);
 
-            // Buscar dados do usuário
             const meData = await apiClient.getMe();
             setUser(meData);
         } catch (error) {
@@ -76,15 +79,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const signUp = async (name: string, email: string, password: string) => {
+    const signUp = async (
+        name: string,
+        email: string,
+        password: string,
+        confirmPassword: string
+    ) => {
         try {
             setIsLoading(true);
 
-            // Registrar usuário
-            await apiClient.register(name, email, password);
+            const response = await apiClient.register(
+                name,
+                email,
+                password,
+                confirmPassword
+            );
 
-            // Fazer login automaticamente
-            await signIn(email, password);
+            await apiClient.setTokens({
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+            });
+
+            const meData = await apiClient.getMe();
+            setUser(meData);
         } catch (error) {
             console.error('Signup failed:', error);
             throw error;
@@ -96,12 +113,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const signOut = async () => {
         try {
             setIsLoading(true);
-            await apiClient.removeToken();
-            setUser(null);
+            await apiClient.logout();
         } catch (error) {
             console.error('Logout failed:', error);
-            throw error;
         } finally {
+            await apiClient.clearTokens();
+            setUser(null);
             setIsLoading(false);
         }
     };

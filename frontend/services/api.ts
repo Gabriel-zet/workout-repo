@@ -2,17 +2,14 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { storage } from './storage';
 
-// Resolve base URL automaticamente
 const getBaseUrl = () => {
     const hostUri = Constants.expoConfig?.hostUri;
 
-    // Expo Go (celular ou até emulador via LAN)
     if (hostUri) {
         const ip = hostUri.split(':')[0];
         return `http://${ip}:3000`;
     }
 
-    // fallback (caso não tenha hostUri)
     return Platform.select({
         android: 'http://10.0.2.2:3000',
         ios: 'http://localhost:3000',
@@ -23,14 +20,6 @@ const getBaseUrl = () => {
 
 const API_BASE_URL = getBaseUrl();
 
-// URL base - ajuste conforme ambiente
-// const API_BASE_URL = Platform.select({
-//     web: 'http://localhost:3000/api',
-//     android: 'http://10.0.2.2:3000/api', // Android emulator localhost
-//     ios: 'http://localhost:3000/api',
-//     default: 'http://localhost:3000/api',
-// });
-
 export interface ApiResponse<T = any> {
     success: boolean;
     data?: T;
@@ -38,8 +27,25 @@ export interface ApiResponse<T = any> {
     issues?: any[];
 }
 
+export interface AuthTokens {
+    accessToken: string;
+    refreshToken: string;
+}
+
+export interface RegisterResponse {
+    message: string;
+    user: {
+        id: number;
+        email: string;
+        name: string;
+    };
+    accessToken: string;
+    refreshToken: string;
+}
+
 class ApiClient {
     private baseURL: string;
+    private refreshPromise: Promise<AuthTokens> | null = null;
 
     constructor(baseURL: string) {
         this.baseURL = baseURL;
@@ -53,15 +59,39 @@ class ApiClient {
         await storage.setItem('auth_token', token);
     }
 
+    async getRefreshToken(): Promise<string | null> {
+        return await storage.getItem('refresh_token');
+    }
+
+    async setRefreshToken(token: string): Promise<void> {
+        await storage.setItem('refresh_token', token);
+    }
+
+    async setTokens(tokens: AuthTokens): Promise<void> {
+        await Promise.all([
+            this.setToken(tokens.accessToken),
+            this.setRefreshToken(tokens.refreshToken),
+        ]);
+    }
+
     async removeToken(): Promise<void> {
         await storage.removeItem('auth_token');
+    }
+
+    async removeRefreshToken(): Promise<void> {
+        await storage.removeItem('refresh_token');
+    }
+
+    async clearTokens(): Promise<void> {
+        await Promise.all([this.removeToken(), this.removeRefreshToken()]);
     }
 
     private async request<T>(
         method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
         endpoint: string,
         body?: any,
-        requiresAuth: boolean = false
+        requiresAuth: boolean = false,
+        allowRefresh: boolean = true
     ): Promise<T> {
         const url = `${this.baseURL}${endpoint}`;
         const headers: HeadersInit = {
@@ -87,8 +117,15 @@ class ApiClient {
 
             const response = await fetch(url, config);
 
+            if (response.status === 401 && requiresAuth && allowRefresh) {
+                const refreshed = await this.tryRefreshToken();
+                if (refreshed) {
+                    return this.request(method, endpoint, body, requiresAuth, false);
+                }
+            }
+
             if (response.status === 204) {
-                return {} as T; // No content
+                return {} as T;
             }
 
             let data;
@@ -98,7 +135,10 @@ class ApiClient {
                 data = await response.json();
             } else {
                 const text = await response.text();
-                console.error(`[API] Non-JSON response from ${method} ${endpoint}:`, text.substring(0, 200));
+                console.error(
+                    `[API] Non-JSON response from ${method} ${endpoint}:`,
+                    text.substring(0, 200)
+                );
                 throw {
                     status: response.status,
                     message: `API returned ${response.status} with non-JSON response. Check if backend is running at ${this.baseURL}`,
@@ -106,10 +146,15 @@ class ApiClient {
             }
 
             if (!response.ok) {
+                const details = data.details ?? data.issues;
+                const detailMessage = Array.isArray(details)
+                    ? details.find((detail: { message?: string }) => detail?.message)?.message
+                    : undefined;
+
                 throw {
                     status: response.status,
-                    message: data.message || 'Erro na requisição',
-                    issues: data.issues,
+                    message: data.message || data.error || detailMessage || 'Erro na requisicao',
+                    issues: details,
                 };
             }
 
@@ -127,17 +172,87 @@ class ApiClient {
         }
     }
 
-    // Auth endpoints
-    async login(email: string, password: string): Promise<{ token: string }> {
-        return this.request('POST', '/auth/login', { email, password });
+    private async tryRefreshToken(): Promise<boolean> {
+        try {
+            await this.refreshSession();
+            return true;
+        } catch (error) {
+            console.error('API: token refresh failed', error);
+            await this.clearTokens();
+            return false;
+        }
+    }
+
+    async refreshSession(): Promise<AuthTokens> {
+        if (!this.refreshPromise) {
+            this.refreshPromise = (async () => {
+                const refreshToken = await this.getRefreshToken();
+
+                if (!refreshToken) {
+                    throw {
+                        status: 401,
+                        message: 'Sessao expirada',
+                    };
+                }
+
+                const tokens = await this.request<AuthTokens>(
+                    'POST',
+                    '/auth/refresh',
+                    { refreshToken },
+                    false,
+                    false
+                );
+
+                await this.setTokens(tokens);
+                return tokens;
+            })().finally(() => {
+                this.refreshPromise = null;
+            });
+        }
+
+        return this.refreshPromise;
+    }
+
+    async login(email: string, password: string): Promise<AuthTokens> {
+        const response = await this.request<{
+            tokens?: AuthTokens;
+            accessToken?: string;
+            refreshToken?: string;
+        }>('POST', '/auth/login', { email, password });
+
+        if (response.tokens?.accessToken && response.tokens?.refreshToken) {
+            return response.tokens;
+        }
+
+        if (response.accessToken && response.refreshToken) {
+            return {
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+            };
+        }
+
+        throw {
+            status: 500,
+            message: 'Resposta de login invalida da API',
+        };
     }
 
     async register(
         name: string,
         email: string,
-        password: string
-    ): Promise<{ id: number; email: string; name: string }> {
-        return this.request('POST', '/user/register', { name, email, password });
+        password: string,
+        confirmPassword: string
+    ): Promise<RegisterResponse> {
+        return this.request('POST', '/auth/register', {
+            name,
+            email,
+            password,
+            confirmPassword,
+        });
+    }
+
+    async logout(): Promise<void> {
+        await this.request('POST', '/auth/logout', undefined, true);
     }
 
     async getMe(): Promise<{ id: number; email: string; name: string; createdAt?: string }> {
@@ -148,12 +263,7 @@ class ApiClient {
                 email: string;
                 name: string;
                 createdAt?: string;
-            }>(
-                'GET',
-                '/me',
-                undefined,
-                true
-            );
+            }>('GET', '/me', undefined, true);
             console.log('API: getMe success', result);
             return result;
         } catch (error) {
@@ -162,7 +272,6 @@ class ApiClient {
         }
     }
 
-    // Workouts endpoints
     async createWorkout(
         date: Date,
         title: string,
@@ -241,7 +350,6 @@ class ApiClient {
         return this.request('DELETE', `/workouts/delete/${id}`, undefined, true);
     }
 
-    // User endpoints
     async getUserProfile(id: number): Promise<{
         id: number;
         email: string;
