@@ -66,8 +66,8 @@ export default function HomeCalendar({
                             className={`
                                 items-center justify-between rounded-2xl
                                 ${isActive
-                                    ? 'bg-white w-[14.2%] py-2 gap-2'
-                                    : 'bg-[#1c1c1e] w-[13.5%] py-2 gap-1'
+                                    ? 'bg-surface-contrast w-[14.2%] py-2 gap-2'
+                                    : 'bg-surface-muted w-[13.5%] py-2 gap-1'
                                 }
                             `}
                         >
@@ -75,7 +75,7 @@ export default function HomeCalendar({
                                 <Text
                                     className={`
                                         font-firs-medium text-sm
-                                        ${isActive ? 'text-black' : 'text-[#8e8e93]'}
+                                        ${isActive ? 'text-foreground-inverse' : 'text-foreground-subtle'}
                                     `}
                                     style={{ letterSpacing: 0.5 }}
                                 >
@@ -90,8 +90,8 @@ export default function HomeCalendar({
                             <Text
                                 className={`
                                     ${isActive
-                                        ? 'text-black text-3xl font-firs-semibold'
-                                        : 'text-[#8e8e93] text-xl font-firs-medium'
+                                        ? 'text-foreground-inverse text-3xl font-firs-semibold'
+                                        : 'text-foreground-subtle text-xl font-firs-medium'
                                     }
                                 `}
                                 style={{

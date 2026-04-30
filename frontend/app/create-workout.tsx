@@ -24,6 +24,7 @@ import { ExerciseSelector } from '@/components/ui/modals/ExerciseSelector';
 import HomeCalendar from '@/components/ui/calendar/HomeCalendar';
 import { SetManager } from '@/components/ui/forms/SetManager';
 import { apiClient } from '@/services/api';
+import theme from '@/constants/theme';
 import { alignDateToCurrentWeek } from '@/utils/date';
 import {
     normalizeWorkoutExerciseFromApi,
@@ -242,8 +243,11 @@ export default function CreateWorkoutScreen() {
 
     if (isEditing && workoutLoading && !workout) {
         return (
-            <SafeAreaView className="flex-1 bg-[#09090b] justify-center items-center">
-                <ActivityIndicator size="large" color="#FF6800" />
+            <SafeAreaView
+                className="flex-1 justify-center items-center bg-canvas"
+                edges={['left', 'right', 'bottom']}
+            >
+                <ActivityIndicator size="large" color={theme.colors.brand} />
             </SafeAreaView>
         );
     }
@@ -251,7 +255,7 @@ export default function CreateWorkoutScreen() {
     const hasExercises = exercises.length > 0;
 
     return (
-        <SafeAreaView className="flex-1 bg-[#09090b]">
+        <SafeAreaView className="flex-1 bg-canvas pt-14" edges={['left', 'right', 'bottom']}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="flex-1"
@@ -270,9 +274,9 @@ export default function CreateWorkoutScreen() {
                         <View className="flex-row items-start justify-between">
                             <View className="flex-1">
                                 <TextInput
-                                    className="text-white text-4xl font-firs-bold p-0 includeFontPadding-false"
+                                    className="text-foreground text-4xl font-firs-bold p-0 includeFontPadding-false"
                                     placeholder="Nome do Treino"
-                                    placeholderTextColor="#52525b"
+                                    placeholderTextColor={theme.colors.textSubtle}
                                     value={title}
                                     onChangeText={setTitle}
                                     maxLength={40}
@@ -280,9 +284,9 @@ export default function CreateWorkoutScreen() {
                                 />
 
                                 <TextInput
-                                    className="text-zinc-500 font-firs-regular text-lg mt-1 p-0 includeFontPadding-false"
+                                    className="text-foreground-muted font-firs-regular text-lg mt-1 p-0 includeFontPadding-false"
                                     placeholder="Adicionar nota para o treino"
-                                    placeholderTextColor="#52525b"
+                                    placeholderTextColor={theme.colors.textSubtle}
                                     value={notes}
                                     onChangeText={setNotes}
                                     multiline
@@ -305,21 +309,21 @@ export default function CreateWorkoutScreen() {
                                 onPress={() => {
                                     handleOpenSelector().catch(() => undefined);
                                 }}
-                                className="bg-[#121212] rounded-[32px] p-10 items-center justify-center mb-4"
+                                className="bg-surface rounded-[32px] border border-outline-subtle p-10 items-center justify-center mb-4"
                             >
                                 <View className="items-center justify-center">
                                     <MaterialCommunityIcons
                                         name="plus"
                                         size={32}
-                                        color="#FFFFFF"
+                                        color={theme.colors.text}
                                     />
                                 </View>
 
                                 <View className="mt-5 items-center">
-                                    <Text className="text-white font-firs-bold text-lg tracking-tight">
+                                    <Text className="text-foreground font-firs-bold text-lg tracking-tight">
                                         Adicionar Exercicio
                                     </Text>
-                                    <Text className="text-zinc-500 font-firs-regular text-sm mt-1">
+                                    <Text className="text-foreground-muted font-firs-regular text-sm mt-1">
                                         {catalogExercises.length === 0
                                             ? 'Crie exercicios no catalogo para montar seu treino'
                                             : 'Monte sua rotina de treino agora'}
@@ -330,19 +334,19 @@ export default function CreateWorkoutScreen() {
                             exercises.map((workoutExercise) => (
                                 <View
                                     key={workoutExercise.id}
-                                    className="bg-[#121212] rounded-[32px] mb-4 overflow-hidden p-6"
+                                    className="bg-surface rounded-[32px] border border-outline-subtle mb-4 overflow-hidden"
                                 >
-                                    <View className="flex-row justify-between items-start mb-6">
+                                    <View className="flex-row justify-between items-start p-6">
                                         <View className="flex-1 pr-4">
-                                            <Text className="text-zinc-400 font-firs-regular text-base mb-1">
+                                            <Text className="text-foreground-muted font-firs-regular text-base mb-1">
                                                 {workoutExercise.exercise.targetMuscle || 'Exercicio'}
                                             </Text>
 
-                                            <Text className="text-white font-firs-medium text-xl leading-tight mb-2">
+                                            <Text className="text-foreground font-firs-medium text-xl leading-tight mb-2">
                                                 {workoutExercise.exercise.name}
                                             </Text>
 
-                                            <Text className="text-zinc-600 font-firs-regular text-sm">
+                                            <Text className="text-foreground-subtle font-firs-regular text-sm">
                                                 {workoutExercise.sets.length} serie
                                                 {workoutExercise.sets.length === 1 ? '' : 's'}
                                             </Text>
@@ -350,18 +354,20 @@ export default function CreateWorkoutScreen() {
 
                                         <TouchableOpacity
                                             onPress={() => handleRemoveExercise(workoutExercise.id)}
-                                            className="w-10 h-10 bg-white/10 rounded-full items-center justify-center"
+                                            className="w-10 h-10 bg-surface-muted rounded-full items-center justify-center"
                                         >
                                             <MaterialCommunityIcons
                                                 name="dots-horizontal"
                                                 size={24}
-                                                color="#a1a1aa"
+                                                color={theme.colors.textMuted}
                                             />
                                         </TouchableOpacity>
                                     </View>
 
                                     <SetManager
                                         sets={workoutExercise.sets}
+                                        actionMode="remove"
+                                        showAddButton={true}
                                         onAddSet={(reps, weight) =>
                                             addSet(workoutExercise.id, reps, weight)
                                         }
@@ -379,13 +385,17 @@ export default function CreateWorkoutScreen() {
                         {hasExercises && (
                             <TouchableOpacity
                                 activeOpacity={0.7}
-                                className="bg-[#121212] rounded-[24px] py-4 flex-row items-center justify-center mt-2"
+                                className="bg-surface rounded-[24px] border border-outline-subtle py-4 flex-row items-center justify-center mt-2"
                                 onPress={() => {
                                     handleOpenSelector().catch(() => undefined);
                                 }}
                             >
-                                <MaterialCommunityIcons name="plus" size={20} color="#a1a1aa" />
-                                <Text className="text-zinc-300 font-firs-medium text-base ml-2">
+                                <MaterialCommunityIcons
+                                    name="plus"
+                                    size={20}
+                                    color={theme.colors.textMuted}
+                                />
+                                <Text className="text-foreground-soft font-firs-medium text-base ml-2">
                                     Adicionar Outro Exercicio
                                 </Text>
                             </TouchableOpacity>
@@ -395,14 +405,14 @@ export default function CreateWorkoutScreen() {
                             <TouchableOpacity
                                 activeOpacity={0.8}
                                 onPress={handleOpenExerciseCatalog}
-                                className="bg-zinc-900 rounded-[24px] py-4 px-5 flex-row items-center justify-center"
+                                className="bg-surface-elevated rounded-[24px] border border-outline-subtle py-4 px-5 flex-row items-center justify-center"
                             >
                                 <MaterialCommunityIcons
                                     name="playlist-plus"
                                     size={20}
-                                    color="#FF6B00"
+                                    color={theme.colors.brand}
                                 />
-                                <Text className="text-white font-firs-medium text-base ml-2">
+                                <Text className="text-foreground font-firs-medium text-base ml-2">
                                     Gerenciar Catalogo de Exercicios
                                 </Text>
                             </TouchableOpacity>
@@ -412,33 +422,31 @@ export default function CreateWorkoutScreen() {
 
                 <SafeAreaView
                     edges={['bottom']}
-                    className="absolute bottom-0 w-full px-5 py-4 bg-[#09090b]/95 border-t border-zinc-800/60"
+                    className="absolute bottom-0 w-full border-t border-outline bg-canvas/95 px-5 py-4"
                 >
                     <TouchableOpacity
                         activeOpacity={0.8}
-                        className={`rounded-2xl py-4 flex-row items-center justify-center gap-2 ${
-                            loading || (isEditing && workoutLoading)
-                                ? 'bg-zinc-800'
-                                : 'bg-[#FFFFFF]'
-                        }`}
+                        className={`rounded-2xl py-4 flex-row items-center justify-center gap-2 ${loading || (isEditing && workoutLoading)
+                            ? 'bg-surface-muted'
+                            : 'bg-surface-contrast'
+                            }`}
                         onPress={handleSaveWorkout}
                         disabled={loading || (isEditing && workoutLoading)}
                     >
                         {loading ? (
-                            <ActivityIndicator color="#09090b" size="small" />
+                            <ActivityIndicator color={theme.colors.textInverse} size="small" />
                         ) : (
                             <>
                                 <Text
-                                    className={`font-firs-medium text-lg ${
-                                        loading ? 'text-zinc-500' : 'text-zinc-900'
-                                    }`}
+                                    className={`font-firs-medium text-lg ${loading ? 'text-foreground-subtle' : 'text-foreground-inverse'
+                                        }`}
                                 >
                                     {isEditing ? 'Atualizar Treino' : 'Salvar Treino'}
                                 </Text>
                                 <MaterialCommunityIcons
                                     name="arrow-right"
                                     size={20}
-                                    color="#09090b"
+                                    color={theme.colors.textInverse}
                                 />
                             </>
                         )}

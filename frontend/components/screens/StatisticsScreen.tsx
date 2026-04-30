@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import type { Workout } from '@/hooks/useWorkouts';
+import theme from '@/constants/theme';
 import {
     formatDateKey,
     getStoredDateKey,
@@ -84,22 +85,22 @@ function StatMiniCard({
     badge?: string;
 }) {
     return (
-        <View className="bg-[#141416] rounded-[24px] p-4 border border-white/5">
-            <View className="flex-row items-center justify-between mb-5">
-                <View className="w-10 h-10 rounded-2xl bg-[#1c1c20] items-center justify-center">
+        <View className="rounded-[24px] border border-outline-subtle bg-surface-elevated p-4">
+            <View className="mb-5 flex-row items-center justify-between">
+                <View className="h-10 w-10 items-center justify-center rounded-2xl bg-surface-muted">
                     {icon}
                 </View>
                 {badge ? (
-                    <Text className="text-zinc-500 text-[12px] font-firs-medium">
+                    <Text className="text-[12px] font-firs-medium text-foreground-muted">
                         {badge}
                     </Text>
                 ) : null}
             </View>
 
-            <Text className="text-zinc-500 text-[13px] font-firs-regular mb-1">
+            <Text className="mb-1 text-[13px] font-firs-regular text-foreground-muted">
                 {label}
             </Text>
-            <Text className="text-white text-[24px] font-firs-bold tracking-tight">
+            <Text className="text-[24px] font-firs-bold tracking-tight text-foreground">
                 {value}
             </Text>
         </View>
@@ -123,26 +124,25 @@ function PeriodRow({
 }) {
     return (
         <View
-            className={`bg-[#141416] px-4 py-4 ${first ? 'rounded-t-[22px]' : ''
-                } ${last ? 'rounded-b-[22px]' : ''}`}
+            className={`bg-surface-elevated px-4 py-4 ${first ? 'rounded-t-[22px]' : ''} ${last ? 'rounded-b-[22px]' : ''}`}
         >
             <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center flex-1">
-                    <View className="w-10 h-10 rounded-2xl bg-[#1c1c20] items-center justify-center mr-3">
+                <View className="flex-1 flex-row items-center">
+                    <View className="mr-3 h-10 w-10 items-center justify-center rounded-2xl bg-surface-muted">
                         {icon}
                     </View>
 
                     <View className="flex-1">
-                        <Text className="text-white text-[15px] font-firs-medium">
+                        <Text className="text-[15px] font-firs-medium text-foreground">
                             {title}
                         </Text>
-                        <Text className="text-zinc-500 text-[13px] mt-1 font-firs-regular">
+                        <Text className="mt-1 text-[13px] font-firs-regular text-foreground-muted">
                             {subtitle}
                         </Text>
                     </View>
                 </View>
 
-                <Text className="text-white text-[15px] font-firs-bold">{value}</Text>
+                <Text className="text-[15px] font-firs-bold text-foreground">{value}</Text>
             </View>
         </View>
     );
@@ -152,12 +152,16 @@ export default function StatisticsScreen({
     workouts = [],
     loading = false,
 }: StatisticsScreenProps) {
+    const insets = useSafeAreaInsets();
     const stats = useMemo(() => calculateStats(workouts), [workouts]);
 
     if (loading && workouts.length === 0) {
         return (
-            <SafeAreaView className="flex-1 bg-[#09090b] justify-center items-center">
-                <ActivityIndicator size="large" color="#FF6800" />
+            <SafeAreaView
+                className="flex-1 items-center justify-center bg-canvas"
+                edges={['left', 'right']}
+            >
+                <ActivityIndicator size="large" color={theme.colors.brand} />
             </SafeAreaView>
         );
     }
@@ -166,43 +170,43 @@ export default function StatisticsScreen({
     const completion30 = formatCompletionRate(stats.workoutsLast30Days, 30);
 
     return (
-        <SafeAreaView className="flex-1 bg-[#09090b]">
+        <SafeAreaView className="flex-1 bg-canvas" edges={['left', 'right']}>
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 40 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
             >
-                <View className="px-6 pt-6 pb-7">
-                    <Text className="text-white text-[32px] font-firs-black tracking-tight">
+                <View className="px-6 pb-7" style={{ paddingTop: insets.top + 16 }}>
+                    <Text className="text-[32px] font-firs-black tracking-tight text-foreground">
                         Estatísticas
                     </Text>
-                    <Text className="text-zinc-500 text-[14px] mt-1 font-firs-regular">
+                    <Text className="mt-1 text-[14px] font-firs-regular text-foreground-muted">
                         Seu progresso de treino em uma visão mais clara
                     </Text>
                 </View>
 
-                <View className="px-6 mb-8">
-                    <View className="overflow-hidden">
+                <View className="mb-8 px-6">
+                    <View className="overflow-hidden rounded-[28px] border border-outline-subtle bg-surface-soft px-5 py-5">
                         <View className="flex-row items-end justify-between">
                             <View className="flex-1 pr-4">
-                                <Text className="text-zinc-500 text-[13px] font-firs-regular mb-2">
+                                <Text className="mb-2 text-[13px] font-firs-regular text-foreground-muted">
                                     Total de treinos
                                 </Text>
-                                <Text className="text-white text-[42px] leading-[46px] font-firs-bold tracking-tight">
+                                <Text className="text-[42px] font-firs-bold leading-[46px] tracking-tight text-foreground">
                                     {stats.totalWorkouts}
                                 </Text>
                             </View>
 
                             <View className="items-end">
-                                <Text className="text-zinc-500 text-[12px] font-firs-medium mb-2">
+                                <Text className="mb-2 text-[12px] font-firs-medium text-foreground-muted">
                                     Sequência atual
                                 </Text>
                                 <View className="flex-row items-center">
                                     <MaterialCommunityIcons
                                         name="fire"
                                         size={16}
-                                        color="#FF6800"
+                                        color={theme.colors.brand}
                                     />
-                                    <Text className="text-white text-[18px] font-firs-bold ml-2">
+                                    <Text className="ml-2 text-[18px] font-firs-bold text-foreground">
                                         {stats.streak} dias
                                     </Text>
                                 </View>
@@ -211,24 +215,36 @@ export default function StatisticsScreen({
                     </View>
                 </View>
 
-                <View className="px-6 mb-8">
-                    <Text className="text-white text-[18px] font-firs-bold mb-4">
+                <View className="mb-8 px-6">
+                    <Text className="mb-4 text-[18px] font-firs-bold text-foreground">
                         Indicadores
                     </Text>
 
-                    <View className="flex-row flex-wrap -mx-2">
-                        <View className="w-1/2 px-2 mb-4">
+                    <View className="-mx-2 flex-row flex-wrap">
+                        <View className="mb-4 w-1/2 px-2">
                             <StatMiniCard
-                                icon={<Feather name="calendar" size={18} color="#fff" />}
+                                icon={
+                                    <Feather
+                                        name="calendar"
+                                        size={18}
+                                        color={theme.colors.text}
+                                    />
+                                }
                                 label="Últimos 7 dias"
                                 value={`${stats.workoutsLast7Days}`}
                                 badge={completion7}
                             />
                         </View>
 
-                        <View className="w-1/2 px-2 mb-4">
+                        <View className="mb-4 w-1/2 px-2">
                             <StatMiniCard
-                                icon={<Feather name="calendar" size={18} color="#fff" />}
+                                icon={
+                                    <Feather
+                                        name="calendar"
+                                        size={18}
+                                        color={theme.colors.text}
+                                    />
+                                }
                                 label="Últimos 30 dias"
                                 value={`${stats.workoutsLast30Days}`}
                                 badge={completion30}
@@ -241,7 +257,7 @@ export default function StatisticsScreen({
                                     <MaterialCommunityIcons
                                         name="chart-line"
                                         size={18}
-                                        color="#fff"
+                                        color={theme.colors.text}
                                     />
                                 }
                                 label="Média por semana"
@@ -255,7 +271,7 @@ export default function StatisticsScreen({
                                     <MaterialCommunityIcons
                                         name="fire"
                                         size={18}
-                                        color="#fff"
+                                        color={theme.colors.text}
                                     />
                                 }
                                 label="Sequência"
@@ -265,30 +281,42 @@ export default function StatisticsScreen({
                     </View>
                 </View>
 
-                <View className="px-6 mb-8">
-                    <Text className="text-white text-[18px] font-firs-bold mb-4">
+                <View className="mb-8 px-6">
+                    <Text className="mb-4 text-[18px] font-firs-bold text-foreground">
                         Períodos
                     </Text>
 
-                    <View className="overflow-hidden rounded-[22px] border border-white/5">
+                    <View className="overflow-hidden rounded-[22px] border border-outline-subtle">
                         <PeriodRow
                             first
-                            icon={<Feather name="activity" size={17} color="#fff" />}
+                            icon={
+                                <Feather
+                                    name="activity"
+                                    size={17}
+                                    color={theme.colors.text}
+                                />
+                            }
                             title="Últimos 7 dias"
                             subtitle={`${stats.workoutsLast7Days} treinos registrados`}
                             value={completion7}
                         />
 
-                        <View className="h-px bg-[#232326]" />
+                        <View className="h-px bg-outline" />
 
                         <PeriodRow
-                            icon={<Feather name="bar-chart-2" size={17} color="#fff" />}
+                            icon={
+                                <Feather
+                                    name="bar-chart-2"
+                                    size={17}
+                                    color={theme.colors.text}
+                                />
+                            }
                             title="Últimos 30 dias"
                             subtitle={`${stats.workoutsLast30Days} treinos registrados`}
                             value={completion30}
                         />
 
-                        <View className="h-px bg-[#232326]" />
+                        <View className="h-px bg-outline" />
 
                         <PeriodRow
                             last
@@ -296,7 +324,7 @@ export default function StatisticsScreen({
                                 <MaterialCommunityIcons
                                     name="calendar-week"
                                     size={17}
-                                    color="#fff"
+                                    color={theme.colors.text}
                                 />
                             }
                             title="Média semanal"
@@ -309,3 +337,4 @@ export default function StatisticsScreen({
         </SafeAreaView>
     );
 }
+

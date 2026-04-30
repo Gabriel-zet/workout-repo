@@ -17,6 +17,7 @@ import NavigationHud from '@/components/ui/navgation/NavgationHud';
 import WeeklyPRCard from '@/components/ui/cards/WeeklyPRCard';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { isSameWeekday } from '@/utils/date';
+import theme from '@/constants/theme';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
@@ -46,15 +47,19 @@ export default function HomeScreen() {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1 }} className="bg-[#09090b]">
+    <SafeAreaView
+      style={{ flex: 1 }}
+      className="bg-canvas"
+      edges={['left', 'right']}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#FF6800"
+            tintColor={theme.colors.brand}
           />
         }
       >
@@ -69,8 +74,8 @@ export default function HomeScreen() {
 
         {loading && workouts.length === 0 ? (
           <View className="flex-1 justify-center items-center py-16">
-            <ActivityIndicator size="large" color="#FF6800" />
-            <Text className="text-zinc-400 mt-4 font-firs-regular">
+            <ActivityIndicator size="large" color={theme.colors.brand} />
+            <Text className="text-foreground-muted mt-4 font-firs-regular">
               Carregando treinos...
             </Text>
           </View>
@@ -112,3 +117,4 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+

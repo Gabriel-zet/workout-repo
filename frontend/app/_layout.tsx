@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -8,9 +8,9 @@ import '../global.css';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '@/contexts/AuthContext';
 import RootLayoutNav from '@/components/navigation/RootLayoutNav';
+import { navigationThemeColors } from '@/constants/theme';
 
 // Impede que a tela de abertura (Splash) suma antes das fontes carregarem
 SplashScreen.preventAutoHideAsync();
@@ -19,9 +19,15 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+const navigationTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    ...navigationThemeColors,
+  },
+};
 
+export default function RootLayout() {
   // 2. Carregando as fontes aqui
   const [loaded, error] = useFonts({
     'TT-Firs-Black': require('../assets/fonts/TT-Firs-Black.ttf'), // Font Black
@@ -44,11 +50,11 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={navigationTheme}>
       <AuthProvider>
         <RootLayoutNav />
       </AuthProvider>
-      <StatusBar style="auto" />
+      <StatusBar style="light" translucent backgroundColor="transparent" />
     </ThemeProvider>
   );
 }

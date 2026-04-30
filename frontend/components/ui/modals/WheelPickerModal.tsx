@@ -18,6 +18,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import theme from '@/constants/theme';
 
 const ITEM_HEIGHT = 92;
 const WHEEL_HEIGHT = ITEM_HEIGHT * 3;
@@ -267,25 +268,30 @@ export function WheelPickerModal({
 
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-            <View className="flex-1 justify-end bg-black/70">
+            <View className="flex-1 justify-end" style={styles.backdrop}>
                 <Pressable className="flex-1" onPress={onClose} />
 
-                <View className="bg-[#171717] rounded-t-[32px] pt-6 pb-8 overflow-hidden">
+                <View className="overflow-hidden rounded-t-[32px] bg-surface-strong pt-6 pb-8">
                     <View className="flex-row justify-between px-6 mb-4">
                         <View>
-                            <Text className="text-white text-4xl font-firs-medium">{title}</Text>
-                            <Text className="text-zinc-400 text-md py-2 font-firs-regular">{subtitle}</Text>
+                            <Text className="text-4xl font-firs-medium text-foreground">{title}</Text>
+                            <Text className="py-2 text-base font-firs-regular text-foreground-muted">{subtitle}</Text>
                         </View>
 
                         <TouchableOpacity
                             onPress={onClose}
-                            className="w-10 h-10 bg-white/10 rounded-full items-center justify-center"
+                            className="h-10 w-10 items-center justify-center rounded-full"
+                            style={styles.closeButton}
                         >
-                            <MaterialCommunityIcons name="close" size={20} color="#aaa" />
+                            <MaterialCommunityIcons
+                                name="close"
+                                size={20}
+                                color={theme.colors.textMuted}
+                            />
                         </TouchableOpacity>
                     </View>
 
-                    <View className="h-[1px] bg-white/10" />
+                    <View className="h-[1px] bg-outline-subtle" />
 
                     <View className="relative py-6">
                         <View className="flex-row justify-center">
@@ -311,24 +317,24 @@ export function WheelPickerModal({
 
                         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
                             <LinearGradient
-                                colors={['#171717', 'transparent']}
+                                colors={[theme.colors.surfaceStrong, 'transparent']}
                                 style={styles.top}
                             />
                             <LinearGradient
-                                colors={['transparent', '#171717']}
+                                colors={['transparent', theme.colors.surfaceStrong]}
                                 style={styles.bottom}
                             />
                         </View>
                     </View>
 
-                    <View className="h-[1px] bg-white/10" />
+                    <View className="h-[1px] bg-outline-subtle" />
 
                     <View className="px-6 mt-10">
                         <TouchableOpacity
                             onPress={handleConfirm}
-                            className="bg-white h-14 rounded-2xl items-center justify-center"
+                            className="h-14 items-center justify-center rounded-2xl bg-brand-primary"
                         >
-                            <Text className="text-black text-lg font-firs-medium">Confirmar</Text>
+                            <Text className="text-lg font-firs-medium text-foreground-inverse">Confirmar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -340,6 +346,12 @@ export function WheelPickerModal({
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
+    backdrop: {
+        backgroundColor: theme.colors.overlay,
+    },
+    closeButton: {
+        backgroundColor: theme.colors.outlineSubtle,
+    },
     itemContainer: {
         height: ITEM_HEIGHT,
         alignItems: 'center',
@@ -350,7 +362,7 @@ const styles = StyleSheet.create({
         fontFamily: 'TT-Firs-Medium',
         includeFontPadding: false,
         textAlignVertical: 'center',
-        color: '#fff',
+        color: theme.colors.text,
         letterSpacing: -2,
     },
     top: {

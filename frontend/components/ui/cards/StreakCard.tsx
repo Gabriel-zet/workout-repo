@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, useWindowDimensions } from 'react-native';
+import { Text, View, useWindowDimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 interface StreakCardProps {
@@ -13,10 +13,7 @@ export default function StreakCard({
   progressCount = 23,
   calories = 687,
 }: StreakCardProps) {
-
   const { width } = useWindowDimensions();
-
-  // tamanho dos círculos responsivo
   const circleSize = (width - 32 - 20) / 25;
 
   const rows = [
@@ -32,26 +29,23 @@ export default function StreakCard({
   };
 
   return (
-    <View className="bg-[#111111] rounded-[36px] p-5 border-2 border-[#2A2A2A] w-full h-full flex flex-col">
-
-      {/* Header */}
+    <View className="h-full w-full rounded-[36px] border border-outline-subtle bg-surface p-5">
       <View className="flex-row items-center">
-        <Text className="text-[#FF6600] text-[48px] font-firs-medium">
+        <Text className="text-[48px] font-firs-medium text-brand-primary">
           {streakText}
         </Text>
 
         <View className="ml-4 justify-center">
-          <Text className="text-white text-lg font-firs-regular leading-[20px]">
+          <Text className="text-lg font-firs-regular leading-[20px] text-foreground">
             dias
           </Text>
-          <Text className="text-white text-lg font-firs-regular leading-[20px]">
+          <Text className="text-lg font-firs-regular leading-[20px] text-foreground">
             seguidos
           </Text>
         </View>
       </View>
 
-      {/* Grid */}
-      <View className="flex-col flex-1 justify-center gap-1">
+      <View className="flex-1 flex-col justify-center gap-1">
         {rows.map((row, i) => (
           <View key={i} className="flex-row justify-between">
             {row.map((day) => {
@@ -65,11 +59,13 @@ export default function StreakCard({
                     height: circleSize,
                     borderRadius: circleSize / 2,
                   }}
-                  className={`
-                    ${status === 'solid' ? 'bg-[#FF6600]' : ''}
-                    ${status === 'outline' ? 'border-2 border-[#FF6600]' : ''}
-                    ${status === 'dark' ? 'bg-[#3B1A0A]' : ''}
-                  `}
+                  className={`${
+                    status === 'solid'
+                      ? 'bg-brand-primary'
+                      : status === 'outline'
+                        ? 'border-2 border-brand-primary'
+                        : 'bg-brand-soft'
+                  }`}
                 />
               );
             })}
@@ -77,15 +73,14 @@ export default function StreakCard({
         ))}
       </View>
 
-      {/* Footer */}
-      <View className="flex-row items-center justify-center mt-3">
-        <FontAwesome5 name="fire" size={10} color="#FF6600" />
+      <View className="mt-3 flex-row items-center justify-center">
+        <FontAwesome5 name="fire" size={10} color="#FF6B00" />
 
-        <Text className="text-white text-sm font-firs-regular ml-2.5 mr-1.5">
+        <Text className="ml-2.5 mr-1.5 text-sm font-firs-regular text-foreground">
           {calories} kcal
         </Text>
 
-        <Text className="text-[#8C8C8C] text-sm font-firs-regular">
+        <Text className="text-sm font-firs-regular text-foreground-subtle">
           queimadas
         </Text>
       </View>
