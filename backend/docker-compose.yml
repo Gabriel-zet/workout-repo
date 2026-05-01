@@ -1,5 +1,6 @@
+version: '3.8'
+
 services:
-  # Questões relacionadas ao banco de dados abaixo
   db:
     image: postgres:16-alpine
     container_name: grav_db
@@ -18,8 +19,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  # Questões relacionadas a API abaixo
+# API service abaixo 
   api:
     build: .
     container_name: grav_api
@@ -30,16 +32,16 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: sh -c "npx prisma migrate deploy && npm run dev"
+    command: sh -c "npx prisma migrate deploy && npm run start"
     depends_on:
       db:
         condition: service_healthy
     networks:
       - grav-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-
 
 networks:
   grav-network:
