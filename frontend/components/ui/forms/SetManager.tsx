@@ -224,7 +224,15 @@ export function SetManager({
 
             {showAddButton && (
                 <TouchableOpacity
-                    onPress={() => onAddSet(10, 0)}
+                    onPress={() => {
+                        const lastSet = sets[sets.length - 1];
+
+                        onAddSet(
+                            lastSet ? lastSet.reps : 10,
+                            lastSet ? lastSet.weight : 0
+                        );
+
+                    }}
                     className="m-6 flex-row items-center self-start rounded-full bg-surface-muted px-4 py-3"
                 >
                     <MaterialCommunityIcons name="plus" size={18} color="#FFFFFF" />
@@ -237,7 +245,7 @@ export function SetManager({
             <WheelPickerModal
                 visible={pickerConfig.visible}
                 type={pickerConfig.type}
-                title={pickerConfig.type === 'weight' ? 'Kilos' : 'Repeticoes'}
+                title={pickerConfig.type === 'weight' ? 'Kilos' : 'Repetições'}
                 initialValue={pickerConfig.initialValue}
                 onClose={() => setPickerConfig((prev) => ({ ...prev, visible: false }))}
                 onConfirm={handleConfirmPicker}

@@ -24,7 +24,7 @@ function RootLayoutNav() {
     }, [isLoading, isSignedIn, router, segments]);
 
     return (
-        <View className="flex-1">
+        <View className="flex-1 bg-canvas">
             {isLoading ? (
                 <View className="flex-1 justify-center items-center bg-canvas">
                     <ActivityIndicator size="small" color={theme.colors.brand} />
@@ -34,6 +34,11 @@ function RootLayoutNav() {
                     screenOptions={{
                         headerShown: false,
                         contentStyle: { backgroundColor: theme.colors.canvas },
+                        gestureEnabled: true,
+                        fullScreenGestureEnabled: true,
+                        gestureDirection: 'horizontal',
+                        animation: 'slide_from_right',
+                        animationMatchesGesture: true,
                     }}
                 >
                     <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -42,14 +47,19 @@ function RootLayoutNav() {
 
                     <Stack.Screen
                         name="modal"
-                        options={{ presentation: 'modal', title: 'Ajustes' }}
+                        options={{
+                            presentation: 'modal',
+                            title: 'Ajustes',
+                            gestureEnabled: true,
+                        }}
                     />
 
                     <Stack.Screen
                         name="create-workout"
                         options={{
                             title: 'Novo Treino',
-                            presentation: Platform.OS === 'ios' ? 'formSheet' : 'card'
+                            presentation: Platform.OS === 'ios' ? 'formSheet' : 'card',
+                            gestureEnabled: true,
                         }}
                     />
 

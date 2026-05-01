@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import {
     View,
     Text,
+    Image,
     TextInput,
     TouchableOpacity,
     ScrollView,
     KeyboardAvoidingView,
     Platform,
     ActivityIndicator,
-    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,7 +35,6 @@ export default function LoginScreen() {
         } catch (err: any) {
             const errorMessage = err.message || err.issues?.[0]?.message || 'Erro ao fazer login';
             setError(errorMessage);
-            Alert.alert('Erro de Login', errorMessage);
         }
     };
 
@@ -55,12 +54,18 @@ export default function LoginScreen() {
                 >
                     <View className="flex-1 px-6 justify-center py-8">
                         {/* Header */}
-                        <View className="mb-12">
-                            <Text className="text-white text-4xl font-bold font-firs-black mb-2">
-                                Treino+
-                            </Text>
-                            <Text className="text-zinc-400 text-base font-firs-regular">
-                                Acompanhe seu progresso
+                        <View className="mb-12 justify-center items-center">
+                            <View>
+                                <Image
+                                    source={require('@/assets/images/logo.png')}
+                                    style={{ width: 200, height: 100 }}
+                                    resizeMode="contain"
+                                    alt="Logo"
+                                />
+                            </View>
+
+                            <Text className="text-zinc-400 text-base font-firs-regular max-w-xs text-center">
+                                Acompanhe e documente seu progresso em tempo real.
                             </Text>
                         </View>
 
@@ -134,21 +139,6 @@ export default function LoginScreen() {
                                     Crie uma
                                 </Text>
                             </TouchableOpacity>
-                        </View>
-
-                        {/* Demo Credentials Hint */}
-                        <View className="mt-12 pt-8 border-t border-zinc-800">
-                            <Text className="text-zinc-500 text-xs text-center font-firs-regular mb-3">
-                                Para testes, você pode usar:
-                            </Text>
-                            <View className="bg-zinc-900 rounded-lg p-4">
-                                <Text className="text-zinc-300 text-sm font-firs-medium mb-1">
-                                    E-mail: teste@email.com
-                                </Text>
-                                <Text className="text-zinc-300 text-sm font-firs-medium">
-                                    Senha: senha123
-                                </Text>
-                            </View>
                         </View>
                     </View>
                 </ScrollView>

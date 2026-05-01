@@ -8,7 +8,6 @@ import {
     KeyboardAvoidingView,
     Platform,
     ActivityIndicator,
-    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,7 +53,6 @@ export default function RegisterScreen() {
             const errorMessage =
                 err.message || err.issues?.[0]?.message || 'Erro ao criar conta';
             setError(errorMessage);
-            Alert.alert('Erro no Registro', errorMessage);
         }
     };
 

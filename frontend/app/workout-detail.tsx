@@ -164,7 +164,7 @@ export default function WorkoutDetailScreen() {
     const workoutId = id as string;
 
     const { workout, loading } = useWorkoutById(workoutId);
-    const { deleteWorkout } = useWorkouts();
+    const { deleteWorkout } = useWorkouts({ autoFetch: false });
 
     const [exercises, setExercises] = useState<ExerciseWithPerformance[]>([]);
     const [exerciseWeightHistory, setExerciseWeightHistory] =
@@ -298,7 +298,7 @@ export default function WorkoutDetailScreen() {
         console.log(`${DEBUG_PREFIX} refreshing exercises from API for workout:`, workoutId);
 
         const workoutExercises = await apiClient
-            .getWorkoutExercisesByWorkout(workoutId)
+            .getWorkoutExercisesByWorkout(workoutId, { force: true })
             .catch((error: any) => {
                 if (error?.status === 404) {
                     return [];
@@ -432,7 +432,6 @@ export default function WorkoutDetailScreen() {
                 });
             }
 
-            await refreshExercises();
         } catch (error) {
             console.error('Update set failed:', error);
             Alert.alert('Ops!', 'Nao foi possivel atualizar a serie agora.');

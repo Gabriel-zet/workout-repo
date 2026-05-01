@@ -55,17 +55,22 @@ export default function WorkoutCard({ data, selectedDate }: WorkoutCardProps) {
                     </View>
 
                     {data ? (
-                        <View className="mt-2 gap-3">
-                            <Text className="text-lg font-firs-regular text-foreground">
-                                {data.title}
-                            </Text>
+                        <View className="mt-2 gap-3 flex-col flex justify-around max-h-[130px] h-full">
+                            <View className="gap-2 max-w-32">
+                                <Text className="text-lg font-firs-regular text-foreground">
+                                    {data.title}
+                                </Text>
+                                <Text className="text-sm font-firs-regular text-foreground">
+                                    {data?.notes}
+                                </Text>
+                            </View>
 
-                            <View className="flex-row items-center">
+                            {/* <View className="flex-row items-center">
                                 <Ionicons name="calendar-outline" size={12} color="#FFFFFF" />
                                 <Text className="ml-1 text-sm font-firs-regular text-foreground">
                                     {formatWeeklySchedule(data.date)}
                                 </Text>
-                            </View>
+                            </View> */}
                             <TouchableOpacity
                                 onPress={handleViewWorkout}
                                 className="self-start rounded-full bg-surface-muted px-6 py-2"
