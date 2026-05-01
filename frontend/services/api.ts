@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { storage } from './storage';
+import { apiNotifications } from './api-notifications';
+import { apiCache } from './api-cache';
 
 const getBaseUrl = () => {
     const hostUri = Constants.expoConfig?.hostUri;
@@ -43,9 +45,29 @@ export interface RegisterResponse {
     refreshToken: string;
 }
 
+interface ApiRequestOptions {
+    notifyOnError?: boolean;
+    mutedStatuses?: number[];
+}
+
+export interface ApiCacheOptions {
+    force?: boolean;
+}
+
+const API_CACHE_TTL = {
+    me: 60_000,
+    workouts: 45_000,
+    workout: 45_000,
+    exercises: 120_000,
+    workoutExercises: 45_000,
+    sets: 30_000,
+} as const;
+
 class ApiClient {
     private baseURL: string;
     private refreshPromise: Promise<AuthTokens> | null = null;
+    private lastNotificationKey: string | null = null;
+    private lastNotificationAt = 0;
 
     constructor(baseURL: string) {
         this.baseURL = baseURL;
@@ -84,6 +106,7 @@ class ApiClient {
 
     async clearTokens(): Promise<void> {
         await Promise.all([this.removeToken(), this.removeRefreshToken()]);
+        apiCache.clear();
     }
 
     private async request<T>(
@@ -91,7 +114,8 @@ class ApiClient {
         endpoint: string,
         body?: any,
         requiresAuth: boolean = false,
-        allowRefresh: boolean = true
+        allowRefresh: boolean = true,
+        options: ApiRequestOptions = {}
     ): Promise<T> {
         const url = `${this.baseURL}${endpoint}`;
         const headers: HeadersInit = {
@@ -120,7 +144,7 @@ class ApiClient {
             if (response.status === 401 && requiresAuth && allowRefresh) {
                 const refreshed = await this.tryRefreshToken();
                 if (refreshed) {
-                    return this.request(method, endpoint, body, requiresAuth, false);
+                    return this.request(method, endpoint, body, requiresAuth, false, options);
                 }
             }
 
@@ -141,7 +165,7 @@ class ApiClient {
                 );
                 throw {
                     status: response.status,
-                    message: `API returned ${response.status} with non-JSON response. Check if backend is running at ${this.baseURL}`,
+                    message: `Resposta inesperada da API. Confira se o backend esta rodando em ${this.baseURL}.`,
                 };
             }
 
@@ -160,16 +184,131 @@ class ApiClient {
 
             return data;
         } catch (error: any) {
-            if (error.message?.includes('Network request failed')) {
-                console.error(`[API] Network error - Backend not reachable at ${url}`);
-                throw {
-                    message: `Cannot connect to backend at ${this.baseURL}. Make sure the server is running.`,
+            if (
+                error.message?.includes('Network request failed') ||
+                error.message?.includes('Failed to fetch')
+            ) {
+                const networkError = {
+                    message: `Nao foi possivel conectar a API em ${this.baseURL}. Verifique se o servidor esta rodando.`,
                     status: 0,
                 };
+
+                console.error(`[API] Network error - Backend not reachable at ${url}`);
+                this.notifyRequestError(method, endpoint, networkError, options);
+                throw networkError;
             }
+
             console.error(`[API] Erro em ${method} ${endpoint}:`, error);
+            this.notifyRequestError(method, endpoint, error, options);
             throw error;
         }
+    }
+
+    private cachedRequest<T>(
+        key: string,
+        ttlMs: number,
+        method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+        endpoint: string,
+        body?: any,
+        requiresAuth: boolean = false,
+        allowRefresh: boolean = true,
+        requestOptions: ApiRequestOptions = {},
+        cacheOptions: ApiCacheOptions = {}
+    ): Promise<T> {
+        return apiCache.get(
+            key,
+            () => this.request<T>(method, endpoint, body, requiresAuth, allowRefresh, requestOptions),
+            {
+                ttlMs,
+                force: cacheOptions.force,
+            }
+        );
+    }
+
+    private invalidateWorkoutCache(workoutId?: string) {
+        apiCache.invalidate('workouts:list');
+
+        if (workoutId) {
+            apiCache.invalidate(`workout:${workoutId}`);
+            apiCache.invalidate(`workout-exercises:${workoutId}`);
+            return;
+        }
+
+        apiCache.invalidatePrefix('workout:');
+        apiCache.invalidatePrefix('workout-exercises:');
+    }
+
+    isWorkoutsCacheFresh() {
+        return apiCache.isFresh('workouts:list', API_CACHE_TTL.workouts);
+    }
+
+    isWorkoutCacheFresh(id: string) {
+        return apiCache.isFresh(`workout:${id}`, API_CACHE_TTL.workout);
+    }
+
+    isExercisesCacheFresh() {
+        return apiCache.isFresh('exercises:list', API_CACHE_TTL.exercises);
+    }
+
+    isWorkoutExercisesCacheFresh(workoutId: string) {
+        return apiCache.isFresh(
+            `workout-exercises:${workoutId}`,
+            API_CACHE_TTL.workoutExercises
+        );
+    }
+
+    private notifyRequestError(
+        method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+        endpoint: string,
+        error: any,
+        options: ApiRequestOptions
+    ) {
+        if (options.notifyOnError === false) {
+            return;
+        }
+
+        const status = typeof error?.status === 'number' ? error.status : undefined;
+        if (status && options.mutedStatuses?.includes(status)) {
+            return;
+        }
+
+        const message = error?.message || 'Erro inesperado na requisicao';
+        const statusLabel = status === 0 ? 'sem conexao' : status ? `HTTP ${status}` : 'sem status';
+        const notificationKey = `${method}:${endpoint}:${statusLabel}:${message}`;
+        const now = Date.now();
+
+        if (
+            this.lastNotificationKey === notificationKey &&
+            now - this.lastNotificationAt < 1800
+        ) {
+            return;
+        }
+
+        this.lastNotificationKey = notificationKey;
+        this.lastNotificationAt = now;
+
+        apiNotifications.notify({
+            type: 'error',
+            title: this.getErrorNotificationTitle(status),
+            message,
+            meta: `${method} ${endpoint} - ${statusLabel}`,
+        });
+    }
+
+    private getErrorNotificationTitle(status?: number) {
+        if (status === 0) {
+            return 'API indisponivel';
+        }
+
+        if (status === 401) {
+            return 'Sessao expirada';
+        }
+
+        if (status && status >= 500) {
+            return 'Erro no servidor';
+        }
+
+        return 'Erro na API';
     }
 
     private async tryRefreshToken(): Promise<boolean> {
@@ -200,7 +339,8 @@ class ApiClient {
                     '/auth/refresh',
                     { refreshToken },
                     false,
-                    false
+                    false,
+                    { notifyOnError: false }
                 );
 
                 await this.setTokens(tokens);
@@ -258,12 +398,19 @@ class ApiClient {
     async getMe(): Promise<{ id: number; email: string; name: string; createdAt?: string }> {
         console.log('API: Calling getMe');
         try {
-            const result = await this.request<{
+            const result = await this.cachedRequest<{
                 id: number;
                 email: string;
                 name: string;
                 createdAt?: string;
-            }>('GET', '/me', undefined, true);
+            }>(
+                'me',
+                API_CACHE_TTL.me,
+                'GET',
+                '/me',
+                undefined,
+                true
+            );
             console.log('API: getMe success', result);
             return result;
         } catch (error) {
@@ -299,10 +446,21 @@ class ApiClient {
             body.notes = normalizedNotes;
         }
 
-        return this.request('POST', '/workouts/create', body, true);
+        const workout = await this.request<{
+            id: string;
+            date: string;
+            title: string;
+            notes?: string;
+            userId: number;
+            createdAt: string;
+            updatedAt: string;
+        }>('POST', '/workouts/create', body, true);
+
+        this.invalidateWorkoutCache(workout.id);
+        return workout;
     }
 
-    async getWorkouts(): Promise<
+    async getWorkouts(options: ApiCacheOptions = {}): Promise<
         Array<{
             id: string;
             date: string;
@@ -314,10 +472,20 @@ class ApiClient {
             workoutExercises?: any[];
         }>
     > {
-        return this.request('GET', '/workouts/list', undefined, true);
+        return this.cachedRequest(
+            'workouts:list',
+            API_CACHE_TTL.workouts,
+            'GET',
+            '/workouts/list',
+            undefined,
+            true,
+            true,
+            {},
+            options
+        );
     }
 
-    async getWorkoutById(id: string): Promise<{
+    async getWorkoutById(id: string, options: ApiCacheOptions = {}): Promise<{
         id: string;
         date: string;
         title: string;
@@ -327,7 +495,17 @@ class ApiClient {
         updatedAt: string;
         workoutExercises?: any[];
     }> {
-        return this.request('GET', `/workouts/profile/${id}`, undefined, true);
+        return this.cachedRequest(
+            `workout:${id}`,
+            API_CACHE_TTL.workout,
+            'GET',
+            `/workouts/profile/${id}`,
+            undefined,
+            true,
+            true,
+            {},
+            options
+        );
     }
 
     async updateWorkout(
@@ -343,11 +521,14 @@ class ApiClient {
         if (updates.title) body.title = updates.title;
         if (updates.notes !== undefined) body.notes = updates.notes;
 
-        return this.request('PUT', `/workouts/profile/${id}`, body, true);
+        const updated = await this.request('PUT', `/workouts/profile/${id}`, body, true);
+        this.invalidateWorkoutCache(id);
+        return updated;
     }
 
     async deleteWorkout(id: string): Promise<void> {
-        return this.request('DELETE', `/workouts/delete/${id}`, undefined, true);
+        await this.request('DELETE', `/workouts/delete/${id}`, undefined, true);
+        this.invalidateWorkoutCache(id);
     }
 
     async getUserProfile(id: number): Promise<{
@@ -363,7 +544,7 @@ class ApiClient {
         return this.request('DELETE', `/user/delete/${id}`, undefined, true);
     }
 
-    async getExercises(): Promise<
+    async getExercises(options: ApiCacheOptions = {}): Promise<
         Array<{
             id: string;
             name: string;
@@ -372,7 +553,17 @@ class ApiClient {
             userId: number;
         }>
     > {
-        return this.request('GET', '/exercises', undefined, true);
+        return this.cachedRequest(
+            'exercises:list',
+            API_CACHE_TTL.exercises,
+            'GET',
+            '/exercises',
+            undefined,
+            true,
+            true,
+            {},
+            options
+        );
     }
 
     async createExercise(name: string): Promise<{
@@ -382,11 +573,21 @@ class ApiClient {
         updatedAt: string;
         userId: number;
     }> {
-        return this.request('POST', '/exercises', { name }, true);
+        const exercise = await this.request<{
+            id: string;
+            name: string;
+            createdAt: string;
+            updatedAt: string;
+            userId: number;
+        }>('POST', '/exercises', { name }, true);
+
+        apiCache.invalidate('exercises:list');
+        return exercise;
     }
 
     async deleteExercise(id: string): Promise<void> {
-        return this.request('DELETE', `/exercises/${id}`, undefined, true);
+        await this.request('DELETE', `/exercises/${id}`, undefined, true);
+        apiCache.invalidate('exercises:list');
     }
 
     async createWorkoutExercise(input: {
@@ -418,10 +619,36 @@ class ApiClient {
             updatedAt?: string;
         }>;
     }> {
-        return this.request('POST', '/workout-exercises', input, true);
+        const workoutExercise = await this.request<{
+            id: string;
+            order: number;
+            notes?: string | null;
+            workoutId: string;
+            exerciseId: string;
+            createdAt?: string;
+            updatedAt?: string;
+            exercise: {
+                id: string;
+                name: string;
+                createdAt?: string;
+                updatedAt?: string;
+                userId?: number;
+            };
+            sets: Array<{
+                id: string;
+                order: number;
+                reps: number | null;
+                weight: string | number | null;
+                createdAt?: string;
+                updatedAt?: string;
+            }>;
+        }>('POST', '/workout-exercises', input, true);
+
+        this.invalidateWorkoutCache(input.workoutId);
+        return workoutExercise;
     }
 
-    async getWorkoutExercisesByWorkout(workoutId: string): Promise<
+    async getWorkoutExercisesByWorkout(workoutId: string, options: ApiCacheOptions = {}): Promise<
         Array<{
             id: string;
             order: number;
@@ -447,11 +674,22 @@ class ApiClient {
             }>;
         }>
     > {
-        return this.request('GET', `/workout-exercises/workout/${workoutId}`, undefined, true);
+        return this.cachedRequest(
+            `workout-exercises:${workoutId}`,
+            API_CACHE_TTL.workoutExercises,
+            'GET',
+            `/workout-exercises/workout/${workoutId}`,
+            undefined,
+            true,
+            true,
+            { mutedStatuses: [404] },
+            options
+        );
     }
 
     async deleteWorkoutExercise(id: string): Promise<void> {
-        return this.request('DELETE', `/workout-exercises/${id}`, undefined, true);
+        await this.request('DELETE', `/workout-exercises/${id}`, undefined, true);
+        this.invalidateWorkoutCache();
     }
 
     async createSet(
@@ -470,7 +708,15 @@ class ApiClient {
         updatedAt?: string;
         workoutExerciseId: string;
     }> {
-        return this.request(
+        const createdSet = await this.request<{
+            id: string;
+            order: number;
+            reps: number | null;
+            weight: string | null;
+            createdAt?: string;
+            updatedAt?: string;
+            workoutExerciseId: string;
+        }>(
             'POST',
             `/workout-exercises/${workoutExerciseId}/sets`,
             {
@@ -483,9 +729,13 @@ class ApiClient {
             },
             true
         );
+
+        this.invalidateWorkoutCache();
+        apiCache.invalidate(`sets:${workoutExerciseId}`);
+        return createdSet;
     }
 
-    async listSets(workoutExerciseId: string): Promise<
+    async listSets(workoutExerciseId: string, options: ApiCacheOptions = {}): Promise<
         Array<{
             id: string;
             order: number;
@@ -496,7 +746,17 @@ class ApiClient {
             workoutExerciseId: string;
         }>
     > {
-        return this.request('GET', `/workout-exercises/${workoutExerciseId}/sets`, undefined, true);
+        return this.cachedRequest(
+            `sets:${workoutExerciseId}`,
+            API_CACHE_TTL.sets,
+            'GET',
+            `/workout-exercises/${workoutExerciseId}/sets`,
+            undefined,
+            true,
+            true,
+            {},
+            options
+        );
     }
 
     async updateSet(
@@ -528,21 +788,36 @@ class ApiClient {
             body.weight = input.weight === null ? null : input.weight.toFixed(2);
         }
 
-        return this.request(
+        const updatedSet = await this.request<{
+            id: string;
+            order: number;
+            reps: number | null;
+            weight: string | null;
+            createdAt?: string;
+            updatedAt?: string;
+            workoutExerciseId: string;
+        }>(
             'PUT',
             `/workout-exercises/${workoutExerciseId}/sets/${setId}`,
             body,
             true
         );
+
+        this.invalidateWorkoutCache();
+        apiCache.invalidate(`sets:${workoutExerciseId}`);
+        return updatedSet;
     }
 
     async deleteSet(workoutExerciseId: string, setId: string): Promise<void> {
-        return this.request(
+        await this.request(
             'DELETE',
             `/workout-exercises/${workoutExerciseId}/sets/${setId}`,
             undefined,
             true
         );
+
+        this.invalidateWorkoutCache();
+        apiCache.invalidate(`sets:${workoutExerciseId}`);
     }
 }
 
