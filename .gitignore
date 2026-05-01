@@ -3,9 +3,11 @@ node_modules
 backend/.env
 frontend/.env
 
+.env
+
 /backend/src/generated/prisma
 
-# Build output
+
 /backend/dist/
 /backend/build/
 
