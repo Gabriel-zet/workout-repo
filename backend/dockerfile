@@ -1,27 +1,23 @@
-# Usa a imagem oficial do Node.js como base
-FROM node:22
+# versão do node para a imagem docker (alpine é uma versão leve do linux)
+FROM node:22-alpine 
 
-# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia as dependecias do projeto
+# Copia package.json e package-lock.json
 COPY package*.json ./
 COPY prisma ./prisma
 
-# Instala as dependências do projeto
-RUN npm install
+# Instala dependências
+RUN npm install --omit=dev
 
-# Copia o restante dos arquivos do projeto para o diretório de trabalho
+# Copia o resto do projeto
 COPY . .
 
+# Build do TypeScript
 RUN npm run build
 
-# Define a variável de ambiente para a porta
 ENV PORT=3000
-
-# Expõe a porta que a aplicação irá rodar
 EXPOSE 3000
 
-# Comando para iniciar a aplicação
+# Usa a imagem alpine (menor, mais rápido)
 CMD ["npm", "start"]
-
