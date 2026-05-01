@@ -226,7 +226,7 @@ export function ExerciseSelector({
                     ListEmptyComponent={renderEmptyState}
                     renderItem={({ item }) => (
                         <TouchableOpacity
-                            className="mb-3 flex-row items-center justify-between p-4"
+                            className="mb-3 flex-row items-center justify-between p-4 bg-surface rounded-2xl"
                             activeOpacity={0.7}
                             onPress={() => {
                                 onSelectExercise(item);
@@ -252,11 +252,11 @@ export function ExerciseSelector({
                                 </View>
                             </View>
 
-                            <View className="h-10 w-10 items-center justify-center rounded-full bg-surface-soft">
+                            <View className="h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
                                 <MaterialCommunityIcons
                                     name="plus"
                                     size={22}
-                                    color={theme.colors.brand}
+                                    color={theme.colors.textSubtle}
                                 />
                             </View>
                         </TouchableOpacity>

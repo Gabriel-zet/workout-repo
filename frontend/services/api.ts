@@ -4,7 +4,27 @@ import { storage } from './storage';
 import { apiNotifications } from './api-notifications';
 import { apiCache } from './api-cache';
 
+const normalizeBaseUrl = (url?: string | null) => {
+    const trimmedUrl = url?.trim();
+
+    if (!trimmedUrl) {
+        return undefined;
+    }
+
+    return trimmedUrl.replace(/\/+$/, '');
+};
+
 const getBaseUrl = () => {
+    const configuredBaseUrl = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_BASE_URL);
+
+    if (configuredBaseUrl) {
+        return configuredBaseUrl;
+    }
+
+    if (!__DEV__) {
+        return '';
+    }
+
     const hostUri = Constants.expoConfig?.hostUri;
 
     if (hostUri) {
@@ -21,6 +41,7 @@ const getBaseUrl = () => {
 };
 
 const API_BASE_URL = getBaseUrl();
+const API_BASE_URL_LABEL = API_BASE_URL || 'mesma origem do front';
 
 export interface ApiResponse<T = any> {
     success: boolean;
@@ -117,6 +138,17 @@ class ApiClient {
         allowRefresh: boolean = true,
         options: ApiRequestOptions = {}
     ): Promise<T> {
+        if (!this.baseURL && Platform.OS !== 'web') {
+            const configError = {
+                status: 0,
+                message:
+                    'EXPO_PUBLIC_API_BASE_URL nao foi configurada neste build. Configure a URL publica da API no EAS e gere outro APK.',
+            };
+
+            this.notifyRequestError(method, endpoint, configError, options);
+            throw configError;
+        }
+
         const url = `${this.baseURL}${endpoint}`;
         const headers: HeadersInit = {
             'Content-Type': 'application/json',
@@ -165,7 +197,7 @@ class ApiClient {
                 );
                 throw {
                     status: response.status,
-                    message: `Resposta inesperada da API. Confira se o backend esta rodando em ${this.baseURL}.`,
+                    message: `Resposta inesperada da API. Confira se o backend esta rodando em ${API_BASE_URL_LABEL}.`,
                 };
             }
 
@@ -189,7 +221,7 @@ class ApiClient {
                 error.message?.includes('Failed to fetch')
             ) {
                 const networkError = {
-                    message: `Nao foi possivel conectar a API em ${this.baseURL}. Verifique se o servidor esta rodando.`,
+                    message: `Nao foi possivel conectar a API em ${API_BASE_URL_LABEL}. Verifique se o servidor esta rodando.`,
                     status: 0,
                 };
 

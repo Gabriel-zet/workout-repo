@@ -1,21 +1,27 @@
 {
   "expo": {
-    "name": "front",
-    "slug": "front",
+    "name": "Grav",
+    "slug": "grav",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "backgroundColor": "#09090B",
-    "scheme": "front",
+    "scheme": "grav",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "app.grav",
+      "versionCode": 3,
       "backgroundColor": "#09090B",
+      "usesCleartextTraffic": true,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
-        "backgroundColor": "#09090B",
+        "backgroundColor": "#FE3E00",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -53,6 +59,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "49703e14-76eb-4f94-aaf8-742de74d3c56"
+      }
     }
   }
 }
