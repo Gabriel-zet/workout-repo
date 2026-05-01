@@ -19,7 +19,6 @@ services:
       retries: 5
     restart: unless-stopped
 
-# API service abaixo 
   api:
     build: .
     container_name: grav_api
@@ -27,13 +26,23 @@ services:
       - "3000:3000"
     env_file:
       - .env
-    # volumes:
-    #  - .:/app
-    # - /app/node_modules
     command: sh -c "npx prisma migrate deploy && npm run start"
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - grav-network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: grav_web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
     networks:
       - grav-network
     restart: unless-stopped
