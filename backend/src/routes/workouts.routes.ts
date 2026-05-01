@@ -17,6 +17,6 @@ workoutsRoutes.delete("/delete/:id", ensureAuth, validateIdParam, workoutsContro
 
 
 // rota de teste pra listar tudo, sem nada :V loucuras 
-workoutsRoutes.get("/listall", workoutsController.listall);
+//workoutsRoutes.get("/listall", workoutsController.listall);
 
 
