@@ -34,19 +34,6 @@ services:
       - grav-network
     restart: unless-stopped
 
-  web:
-    build:
-      context: .
-      dockerfile: dockerfile.web
-    container_name: grav_web
-    ports:
-      - "5173:5173"
-    depends_on:
-      - api
-    networks:
-      - grav-network
-    restart: unless-stopped
-
 volumes:
   postgres_data:
 
