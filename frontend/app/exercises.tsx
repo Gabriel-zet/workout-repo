@@ -30,7 +30,7 @@ export default function ExercisesScreen() {
     const handleRefresh = useCallback(async () => {
         try {
             setRefreshing(true);
-            await refetch();
+            await refetch({ force: true });
         } finally {
             setRefreshing(false);
         }
@@ -237,4 +237,3 @@ export default function ExercisesScreen() {
         </SafeAreaView>
     );
 }
-

@@ -27,7 +27,7 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
+    await refetch({ force: true });
     setRefreshing(false);
   }, [refetch]);
 
@@ -63,7 +63,10 @@ export default function HomeScreen() {
           />
         }
       >
-        <NavigationHud selectedDate={selectedDate} />
+        <NavigationHud
+          selectedDate={selectedDate}
+          workoutTitle={workoutForDate?.title}
+        />
 
         <View className="px-5">
           <HomeCalendar
@@ -117,4 +120,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-

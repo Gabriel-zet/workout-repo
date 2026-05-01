@@ -1,6 +1,8 @@
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import * as SystemUI from 'expo-system-ui';
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -11,9 +13,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/contexts/AuthContext';
 import RootLayoutNav from '@/components/navigation/RootLayoutNav';
 import { navigationThemeColors } from '@/constants/theme';
+import { ApiNotificationHost } from '@/components/ui/ApiNotificationHost';
 
 // Impede que a tela de abertura (Splash) suma antes das fontes carregarem
 SplashScreen.preventAutoHideAsync();
+SystemUI.setBackgroundColorAsync(navigationThemeColors.background);
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -50,11 +54,14 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={navigationTheme}>
-      <AuthProvider>
-        <RootLayoutNav />
-      </AuthProvider>
-      <StatusBar style="light" translucent backgroundColor="transparent" />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: navigationThemeColors.background }}>
+      <ThemeProvider value={navigationTheme}>
+        <AuthProvider>
+          <RootLayoutNav />
+          <ApiNotificationHost />
+        </AuthProvider>
+        <StatusBar style="light" translucent backgroundColor="transparent" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

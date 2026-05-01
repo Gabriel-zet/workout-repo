@@ -134,7 +134,7 @@ export default function CreateWorkoutScreen() {
     const syncWorkoutExercises = useCallback(
         async (targetWorkoutId: string): Promise<WorkoutExercise[]> => {
             const currentWorkoutExercises = await apiClient
-                .getWorkoutExercisesByWorkout(targetWorkoutId)
+                .getWorkoutExercisesByWorkout(targetWorkoutId, { force: true })
                 .catch((error: any) => {
                     if (error?.status === 404) {
                         return [];

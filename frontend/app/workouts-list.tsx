@@ -24,7 +24,7 @@ export default function WorkoutsListScreen() {
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        await refetch();
+        await refetch({ force: true });
         setRefreshing(false);
     }, [refetch]);
 

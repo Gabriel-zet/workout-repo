@@ -9,6 +9,8 @@ import React, {
 import {
     Animated,
     Modal,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
     Pressable,
     StyleSheet,
     Text,
@@ -104,6 +106,9 @@ const WheelColumn = memo(
         const listRef = useRef<Animated.FlatList<number>>(null);
         const scrollY = useRef(new Animated.Value(0)).current;
         const selectedValueRef = useRef(selectedValue);
+        const latestOffsetRef = useRef(0);
+        const momentumActiveRef = useRef(false);
+        const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         const snapOffsets = useMemo(
             () => data.map((_, index) => index * ITEM_HEIGHT),
             [data]
@@ -112,6 +117,15 @@ const WheelColumn = memo(
         useEffect(() => {
             selectedValueRef.current = selectedValue;
         }, [selectedValue]);
+
+        const clearSettleTimeout = useCallback(() => {
+            if (!settleTimeoutRef.current) return;
+
+            clearTimeout(settleTimeoutRef.current);
+            settleTimeoutRef.current = null;
+        }, []);
+
+        useEffect(() => clearSettleTimeout, [clearSettleTimeout]);
 
         const commitValue = useCallback(
             (index: number, withHaptics: boolean) => {
@@ -130,23 +144,34 @@ const WheelColumn = memo(
             [data, onChange]
         );
 
-        const snapToIndex = useCallback(
-            (index: number, animated: boolean, withHaptics: boolean) => {
+        const alignToIndex = useCallback(
+            (index: number) => {
                 const clampedIndex = clamp(index, 0, data.length - 1);
                 const targetOffset = clampedIndex * ITEM_HEIGHT;
 
                 listRef.current?.scrollToOffset({
                     offset: targetOffset,
-                    animated,
+                    animated: false,
                 });
 
-                if (!animated) {
-                    scrollY.setValue(targetOffset);
+                latestOffsetRef.current = targetOffset;
+                scrollY.setValue(targetOffset);
+            },
+            [data.length, scrollY]
+        );
+
+        const settleAtOffset = useCallback(
+            (offsetY: number, withHaptics: boolean) => {
+                const index = clamp(Math.round(offsetY / ITEM_HEIGHT), 0, data.length - 1);
+                const targetOffset = index * ITEM_HEIGHT;
+
+                if (Math.abs(offsetY - targetOffset) > 0.5) {
+                    alignToIndex(index);
                 }
 
-                commitValue(clampedIndex, withHaptics);
+                commitValue(index, withHaptics);
             },
-            [commitValue, data.length, scrollY]
+            [alignToIndex, commitValue, data.length]
         );
 
         useEffect(() => {
@@ -155,17 +180,28 @@ const WheelColumn = memo(
             const idx = data.indexOf(selectedValue);
             if (idx === -1) return;
 
-            requestAnimationFrame(() => {
-                snapToIndex(idx, false, false);
-            });
-        }, [data, selectedValue, snapToIndex, visible]);
+            clearSettleTimeout();
+            momentumActiveRef.current = false;
 
-        const handleScrollSettled = useCallback(
-            (offsetY: number) => {
-                const index = Math.round(offsetY / ITEM_HEIGHT);
-                snapToIndex(index, true, true);
+            requestAnimationFrame(() => {
+                alignToIndex(idx);
+            });
+        }, [alignToIndex, clearSettleTimeout, data, selectedValue, visible]);
+
+        const scheduleDragSettle = useCallback(
+            (offsetY: number, delay = 80) => {
+                clearSettleTimeout();
+                latestOffsetRef.current = offsetY;
+
+                settleTimeoutRef.current = setTimeout(() => {
+                    settleTimeoutRef.current = null;
+
+                    if (!momentumActiveRef.current) {
+                        settleAtOffset(latestOffsetRef.current, true);
+                    }
+                }, delay);
             },
-            [snapToIndex]
+            [clearSettleTimeout, settleAtOffset]
         );
 
         return (
@@ -190,17 +226,30 @@ const WheelColumn = memo(
                     })}
                     onScroll={Animated.event(
                         [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                        { useNativeDriver: true }
+                        {
+                            useNativeDriver: true,
+                            listener: (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+                                latestOffsetRef.current = e.nativeEvent.contentOffset.y;
+                            },
+                        }
                     )}
+                    onMomentumScrollBegin={() => {
+                        momentumActiveRef.current = true;
+                        clearSettleTimeout();
+                    }}
                     onMomentumScrollEnd={(e) => {
-                        handleScrollSettled(e.nativeEvent.contentOffset.y);
+                        momentumActiveRef.current = false;
+                        settleAtOffset(e.nativeEvent.contentOffset.y, true);
                     }}
                     onScrollEndDrag={(e) => {
-                        const velocityY = Math.abs(e.nativeEvent.velocity?.y ?? 0);
+                        const velocityY = e.nativeEvent.velocity?.y;
 
-                        if (velocityY > 0.05) return;
+                        if (typeof velocityY === 'number' && Math.abs(velocityY) > 0.05) {
+                            scheduleDragSettle(e.nativeEvent.contentOffset.y, 140);
+                            return;
+                        }
 
-                        handleScrollSettled(e.nativeEvent.contentOffset.y);
+                        scheduleDragSettle(e.nativeEvent.contentOffset.y);
                     }}
                     renderItem={({ item, index }) => (
                         <WheelItem
