@@ -7,6 +7,7 @@ import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 
 type NavigationHudProps = {
     selectedDate: Date;
+    workoutTitle?: string;
 };
 
 function getDayName(date: Date): string {
@@ -17,7 +18,7 @@ function getDayName(date: Date): string {
     return day.charAt(0).toUpperCase() + day.slice(1);
 }
 
-export default function NavigationHud({ selectedDate }: NavigationHudProps) {
+export default function NavigationHud({ selectedDate, workoutTitle }: NavigationHudProps) {
     const insets = useSafeAreaInsets();
     const { photoUri } = useProfilePhoto();
 
@@ -34,7 +35,7 @@ export default function NavigationHud({ selectedDate }: NavigationHudProps) {
                     </Text>
 
                     <Text className="mt-1 text-sm font-firs-regular text-foreground-subtle">
-                        Push - peso por lado
+                        {workoutTitle ?? 'Nenhum treino'}
                     </Text>
                 </View>
 
