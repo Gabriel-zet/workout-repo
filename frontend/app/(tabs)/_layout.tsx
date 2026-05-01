@@ -1,4 +1,4 @@
-import React, { ComponentProps, useState } from 'react';
+import React, { ComponentProps, useCallback, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -14,8 +14,9 @@ import {
 } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Octicons } from '@expo/vector-icons';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, useRouter, useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import theme from '@/constants/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -52,6 +53,16 @@ const MORE_ITEMS: { label: string; icon: IconName; path: string }[] = [
   { label: 'Biblioteca', icon: 'book', path: '/workouts-list' },
   { label: 'Exercicios', icon: 'checklist', path: '/exercises' },
 ];
+
+const TAB_ORDER = [
+  { name: 'index', path: '/(tabs)' },
+  { name: 'statistics', path: '/(tabs)/statistics' },
+  { name: 'explore', path: '/(tabs)/explore' },
+] as const;
+
+const SWIPE_DISTANCE = 70;
+const SWIPE_VELOCITY = 650;
+
 function TabSurface({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.surface, style]}>{children}</View>;
 }
@@ -195,22 +206,68 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 }
 
 export default function TabLayout() {
+  const router = useRouter();
+  const segments = useSegments();
+  const currentSegment = segments[segments.length - 1];
+  const activeTabIndex = Math.max(
+    TAB_ORDER.findIndex((tab) => tab.name === currentSegment),
+    0
+  );
+
+  const handleTabSwipe = useCallback(
+    (translationX: number, velocityX: number) => {
+      const hasEnoughDistance = Math.abs(translationX) >= SWIPE_DISTANCE;
+      const hasEnoughVelocity = Math.abs(velocityX) >= SWIPE_VELOCITY;
+
+      if (!hasEnoughDistance && !hasEnoughVelocity) {
+        return;
+      }
+
+      const direction = translationX < 0 ? 1 : -1;
+      const nextTabIndex = activeTabIndex + direction;
+      const nextTab = TAB_ORDER[nextTabIndex];
+
+      if (!nextTab) {
+        return;
+      }
+
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      router.replace(nextTab.path as never);
+    },
+    [activeTabIndex, router]
+  );
+
+  const tabSwipeGesture = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetX([-35, 35])
+    .failOffsetY([-24, 24])
+    .onEnd((event) => {
+      handleTabSwipe(event.translationX, event.velocityX);
+    });
+
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        sceneStyle: { backgroundColor: theme.colors.canvas },
-      }}
-      tabBar={(props) => <CustomTabBar {...props} />}
-    >
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="statistics" options={{ title: 'Stats' }} />
-      <Tabs.Screen name="explore" options={{ title: 'Perfil' }} />
-    </Tabs>
+    <GestureDetector gesture={tabSwipeGesture}>
+      <View style={styles.gestureSurface}>
+        <Tabs
+          screenOptions={{
+            headerShown: false,
+            sceneStyle: { backgroundColor: theme.colors.canvas },
+          }}
+          tabBar={(props) => <CustomTabBar {...props} />}
+        >
+          <Tabs.Screen name="index" options={{ title: 'Home' }} />
+          <Tabs.Screen name="statistics" options={{ title: 'Stats' }} />
+          <Tabs.Screen name="explore" options={{ title: 'Perfil' }} />
+        </Tabs>
+      </View>
+    </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
+  gestureSurface: {
+    flex: 1,
+  },
   wrapper: {
     position: 'absolute',
     left: 0,
