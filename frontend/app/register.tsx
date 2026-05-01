@@ -60,6 +60,8 @@ export default function RegisterScreen() {
         router.back();
     };
 
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
         <SafeAreaView className="flex-1 bg-[#09090b]">
             <KeyboardAvoidingView
@@ -70,7 +72,7 @@ export default function RegisterScreen() {
                     contentContainerStyle={{ flexGrow: 1 }}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View className="flex-1 px-6 justify-center py-8">
+                    <View className="flex-1 px-6 justify-evenly py-8">
                         {/* Header com botão voltar */}
                         <View className="flex-row items-center mb-8">
                             <TouchableOpacity
@@ -80,7 +82,7 @@ export default function RegisterScreen() {
                                 <Feather name="arrow-left" size={24} color="white" />
                             </TouchableOpacity>
                             <View className="ml-4 flex-1">
-                                <Text className="text-white text-3xl font-bold font-firs-black">
+                                <Text className="text-white text-4xl font-firs-black">
                                     Nova Conta
                                 </Text>
                                 <Text className="text-zinc-400 text-sm font-firs-regular mt-1">
@@ -88,7 +90,6 @@ export default function RegisterScreen() {
                                 </Text>
                             </View>
                         </View>
-
                         {/* Error Alert */}
                         {error ? (
                             <View className="bg-red-500/10 border border-red-500 rounded-lg p-4 mb-6">
@@ -96,103 +97,121 @@ export default function RegisterScreen() {
                             </View>
                         ) : null}
 
-                        {/* Name Input */}
-                        <View className="mb-6">
-                            <Text className="text-white text-sm font-firs-medium mb-3">
-                                Nome Completo
-                            </Text>
-                            <TextInput
-                                placeholder="João Silva"
-                                placeholderTextColor="#71717a"
-                                value={name}
-                                onChangeText={setName}
-                                editable={!isLoading}
-                                className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
-                            />
-                        </View>
+                        {/* Form */}
+                        <View className="mb-56">
+                            {/* Name Input */}
+                            <View className="mb-6">
+                                <Text className="text-white text-sm font-firs-medium mb-3">
+                                    Nome Completo
+                                </Text>
+                                <TextInput
+                                    placeholder="João Silva"
+                                    placeholderTextColor="#71717a"
+                                    value={name}
+                                    onChangeText={setName}
+                                    editable={!isLoading}
+                                    className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
+                                />
+                            </View>
 
-                        {/* Email Input */}
-                        <View className="mb-6">
-                            <Text className="text-white text-sm font-firs-medium mb-3">
-                                E-mail
-                            </Text>
-                            <TextInput
-                                placeholder="seu@email.com"
-                                placeholderTextColor="#71717a"
-                                value={email}
-                                onChangeText={setEmail}
-                                editable={!isLoading}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
-                            />
-                        </View>
+                            {/* Email Input */}
+                            <View className="mb-6">
+                                <Text className="text-white text-sm font-firs-medium mb-3">
+                                    E-mail
+                                </Text>
+                                <TextInput
+                                    placeholder="seu@email.com"
+                                    placeholderTextColor="#71717a"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    editable={!isLoading}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
+                                />
+                            </View>
 
-                        {/* Password Input */}
-                        <View className="mb-6">
-                            <Text className="text-white text-sm font-firs-medium mb-3">
-                                Senha
-                            </Text>
-                            <TextInput
-                                placeholder="••••••••"
-                                placeholderTextColor="#71717a"
-                                value={password}
-                                onChangeText={setPassword}
-                                editable={!isLoading}
-                                secureTextEntry
-                                className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
-                            />
-                            <Text className="text-zinc-500 text-xs font-firs-regular mt-2">
-                                Mínimo 8 caracteres com maiúscula, minúscula e número
-                            </Text>
-                        </View>
+                            {/* Password Input */}
+                            <View className="mb-6">
+                                <Text className="text-white text-sm font-firs-medium mb-3">
+                                    Senha
+                                </Text>
+                                <View className="flex-row items-center bg-zinc-900 rounded-lg border border-zinc-800">
+                                    <TextInput
+                                        placeholder="••••••••"
+                                        placeholderTextColor="#71717a"
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        editable={!isLoading}
+                                        secureTextEntry={!showPassword}
+                                        className="flex-1 text-white px-4 py-3 font-firs-regular"
+                                    />
 
-                        {/* Confirm Password Input */}
-                        <View className="mb-8">
-                            <Text className="text-white text-sm font-firs-medium mb-3">
-                                Confirmar Senha
-                            </Text>
-                            <TextInput
-                                placeholder="••••••••"
-                                placeholderTextColor="#71717a"
-                                value={confirmPassword}
-                                onChangeText={setConfirmPassword}
-                                editable={!isLoading}
-                                secureTextEntry
-                                className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
-                            />
-                        </View>
-
-                        {/* Register Button */}
-                        <TouchableOpacity
-                            onPress={handleRegister}
-                            disabled={isLoading}
-                            className={`${isLoading ? 'bg-orange-600/50' : 'bg-orange-600'
-                                } rounded-lg py-3 mb-4`}
-                        >
-                            <View className="flex-row justify-center items-center">
-                                {isLoading && (
-                                    <ActivityIndicator color="white" size="small" />
-                                )}
-                                <Text
-                                    className={`${isLoading ? 'ml-2' : ''
-                                        } text-white text-base font-firs-bold`}
-                                >
-                                    {isLoading ? 'Criando conta...' : 'Criar Conta'}
+                                    <TouchableOpacity
+                                        onPress={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4"
+                                    >
+                                        <Feather
+                                            name={showPassword ? 'eye-off' : 'eye'}
+                                            size={20}
+                                            color="#71717a"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                                <Text className="text-zinc-500 text-xs font-firs-regular mt-2">
+                                    Mínimo 8 caracteres com maiúscula, minúscula e número
                                 </Text>
                             </View>
-                        </TouchableOpacity>
 
-                        {/* Login Link */}
-                        <View className="flex-row justify-center">
-                            <Text className="text-zinc-400 font-firs-regular">
-                                Já tem conta?{' '}
-                            </Text>
-                            <TouchableOpacity onPress={handleBackToLogin} disabled={isLoading}>
-                                <Text className="text-orange-500 font-firs-bold">
-                                    Entrar
+                            {/* Confirm Password Input */}
+                            <View className="mb-8">
+                                <Text className="text-white text-sm font-firs-medium mb-3">
+                                    Confirmar Senha
                                 </Text>
+                                <View>
+                                    <TextInput
+                                        placeholder="••••••••"
+                                        placeholderTextColor="#71717a"
+                                        value={confirmPassword}
+                                        onChangeText={setConfirmPassword}
+                                        editable={!isLoading}
+                                        secureTextEntry={!showPassword}
+                                        className="bg-zinc-900 text-white rounded-lg px-4 py-3 font-firs-regular border border-zinc-800"
+                                    />
+                                </View>
+                            </View>
+
+                            {/* Register Button */}
+                            <TouchableOpacity
+                                onPress={handleRegister}
+                                disabled={isLoading}
+                                className={`${isLoading ? 'bg-orange-600/50' : 'bg-orange-600'
+                                    } rounded-lg py-3 mb-4`}
+                            >
+                                <View className="flex-row justify-center items-center">
+                                    {isLoading && (
+                                        <ActivityIndicator color="white" size="small" />
+                                    )}
+                                    <Text
+                                        className={`${isLoading ? 'ml-2' : ''
+                                            } text-white text-base font-firs-bold`}
+                                    >
+                                        {isLoading ? 'Criando conta...' : 'Criar Conta'}
+                                    </Text>
+                                </View>
                             </TouchableOpacity>
+
+                            {/* Login Link */}
+                            <View className="flex-row justify-center">
+                                <Text className="text-zinc-400 font-firs-regular">
+                                    Já tem conta?{' '}
+                                </Text>
+                                <TouchableOpacity onPress={handleBackToLogin} disabled={isLoading}>
+                                    <Text className="text-orange-500 font-firs-bold">
+                                        Entrar
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
                 </ScrollView>

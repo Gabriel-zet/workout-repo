@@ -1,10 +1,9 @@
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 
-import { formatWeekdayName, formatWeeklySchedule } from '@/utils/date';
+import { formatWeekdayName } from '@/utils/date';
 
 interface WorkoutData {
     id: string;
